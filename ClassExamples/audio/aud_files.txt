@@ -1,0 +1,17 @@
+FilestoAdd 10
+0 = sample
+1 = stream
+
+friendlyname   |audiofile path                       |sound type              
+
+Start
+churchbell      audio/sample/churchbell.flac          0
+crystalcave     audio/sample/crystal_cave.mp3         0
+laser           audio/sample/laser1.wav               0
+metal           audio/sample/metal_hit.mp3            0
+rockbreak       audio/sample/rock_breaking.flac       0
+epic            audio/stream/epic_amulet_item.wav     1
+fire            audio/stream/fire.wav                 1
+pathtolake      audio/stream/path_to_lake_land.ogg    1
+rain            audio/stream/rain_gutter.mp3          1
+wind            audio/stream/wind4.wav                1
