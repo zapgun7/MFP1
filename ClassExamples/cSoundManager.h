@@ -8,19 +8,20 @@
 
 // This can be a singleton, but we are not focusing on 
 // design patterns at the moment.
-class SoundManager
+class cSoundManager
 {
 public:
 	// Constructor
-	SoundManager();
+	cSoundManager();
 
 	// Destructor (Gets called on delete)
-	~SoundManager();
+	~cSoundManager();
 
 	bool Initialize(std::string loadFile);
 	void Destroy();
 
-	void PlaySound(FMOD::Sound* sound);
+	/*void PlaySound(FMOD::Sound* sound);*/
+	void PlaySound(std::string friendlyName);
 
 	void Update();
 
@@ -41,6 +42,8 @@ public:
 private:
 	bool m_Initialized = false;
 	bool loadSoundsFromFile(std::string filename); // Initializes the map from a given file
+
+	void PlaySound(FMOD::Sound* sound); // 
 
 	float currentPan;
 

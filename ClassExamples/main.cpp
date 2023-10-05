@@ -1,8 +1,10 @@
-#include "SoundManager.h"
+#include "cSoundManager.h"
 #include <iostream>
 #include <conio.h>
+#include "cMediaPlayer.h"
 
-SoundManager g_SoundManager;
+cSoundManager g_SoundManager;
+cMediaPlayer g_MediaPlayer;
 
 // void PlaySound(const char* soundfile)
 // {
@@ -36,40 +38,40 @@ SoundManager g_SoundManager;
 
 int main(int argc, char** argv)
 {
-	g_SoundManager.Initialize("audio/aud_files.txt");
-	g_SoundManager.PlaySound(g_SoundManager.FindSoundBySoundName("churchbell"));
-	g_SoundManager.setPitch(3.0f);
+// 	g_SoundManager.Initialize("audio/aud_files.txt");
+// 	g_SoundManager.PlaySound("churchbell");
+// 	g_SoundManager.setPitch(3.0f);
 // 	PlaySound("audio/jaguar.wav");
 // 	PlaySound("audio/singing.wav");
 // 	PlaySound("audio/swish.wav");
-	while (true)
-	{
-		g_SoundManager.Update();
-		
-		if (_kbhit())
-		{
-			int key = _getch();
-			if (key == 27/*ESCAPE*/)
-			{
-				break;
-			}
-		}
-	}
-	g_SoundManager.PlaySound(g_SoundManager.FindSoundBySoundName("fire"));
-	while (true)
-	{
-		g_SoundManager.Update();
-
-		if (_kbhit())
-		{
-			int key = _getch();
-			if (key == 27/*ESCAPE*/)
-			{
-				break;
-			}
-		}
-	}
-
+// 	while (true)
+// 	{
+// 		g_SoundManager.Update();
+// 		
+// 		if (_kbhit())
+// 		{
+// 			int key = _getch();
+// 			if (key == 27/*ESCAPE*/)
+// 			{
+// 				break;
+// 			}
+// 		}
+// 	}
+// 	g_SoundManager.PlaySound(g_SoundManager.FindSoundBySoundName("fire"));
+// 	while (true)
+// 	{
+// 		g_SoundManager.Update();
+// 
+// 		if (_kbhit())
+// 		{
+// 			int key = _getch();
+// 			if (key == 27/*ESCAPE*/)
+// 			{
+// 				break;
+// 			}
+// 		}
+// 	}
+	g_MediaPlayer.startProgram();
 	g_SoundManager.Destroy();
 	// 0 means successful, anything else is typically an "error"
 	return 0;

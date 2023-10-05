@@ -1,20 +1,20 @@
-#include "SoundManager.h"
+#include "cSoundManager.h"
 
 #include <iostream>
 #include <fstream>
 
-SoundManager::SoundManager()
+cSoundManager::cSoundManager()
 {
 	// Usually do nothing that requires code execution
 	// Declare initial values for everything
 }
 
-SoundManager::~SoundManager()
+cSoundManager::~cSoundManager()
 {
 	// Typically just for notifying things that this is being destroyed.
 }
 
-bool SoundManager::Initialize(std::string loadFile)
+bool cSoundManager::Initialize(std::string loadFile)
 {
 	if (m_Initialized)
 		return true;
@@ -50,7 +50,7 @@ bool SoundManager::Initialize(std::string loadFile)
 	return true;
 }
 
-void SoundManager::Destroy()
+void cSoundManager::Destroy()
 {
 	if (!m_Initialized)
 		return;
@@ -79,7 +79,7 @@ void SoundManager::Destroy()
 }
 
 
-void SoundManager::PlaySound(FMOD::Sound* sound)
+void cSoundManager::PlaySound(FMOD::Sound* sound) // For calling from within this class
 {
 	if ((!m_Initialized) || (sound == NULL))
 		return;
@@ -93,7 +93,14 @@ void SoundManager::PlaySound(FMOD::Sound* sound)
 	}
 }
 
-void SoundManager::Update()
+
+void cSoundManager::PlaySound(std::string friendlyName) // For calling from other classes
+{
+	PlaySound(FindSoundBySoundName(friendlyName));
+	return;
+}
+
+void cSoundManager::Update()
 {
 	if (!m_Initialized)
 		return;
@@ -110,7 +117,7 @@ void SoundManager::Update()
 
 
 
-void SoundManager::setPitch(float newPitch)
+void cSoundManager::setPitch(float newPitch)
 {
 	// Do we want to let it go below 0? probably not. maybe clamp it at .05f or somrthing, since 0 would probably stop the audio
 	if (newPitch < 0.01f)
@@ -122,7 +129,7 @@ void SoundManager::setPitch(float newPitch)
 }
 
 
-void SoundManager::setVolume(float newVolume)
+void cSoundManager::setVolume(float newVolume)
 {
 	if (newVolume < 0.0f) // Make sure volume doesn't go below 0
 	{
@@ -138,7 +145,7 @@ void SoundManager::setVolume(float newVolume)
 }
 
 
-void SoundManager::setPan(float newPan)
+void cSoundManager::setPan(float newPan)
 {
 	if (abs(newPan) > 1.0f) // Clamp the newPan between(including) -1 and 1
 		newPan = abs(newPan) / newPan;
@@ -147,7 +154,7 @@ void SoundManager::setPan(float newPan)
 }
 
 
-void SoundManager::setLoop(int loopState) // -1 = loop forever; 0 = oneshot (don't loop); anything over 0 is the number of times to loop
+void cSoundManager::setLoop(int loopState) // -1 = loop forever; 0 = oneshot (don't loop); anything over 0 is the number of times to loop
 {
 	if (loopState < -1)
 	{
@@ -157,7 +164,7 @@ void SoundManager::setLoop(int loopState) // -1 = loop forever; 0 = oneshot (don
 	m_Channel->setLoopCount(loopState);
 }
 
-float SoundManager::getPitch()
+float cSoundManager::getPitch()
 {
 	float temp;
 	m_Channel->getPitch(&temp);
@@ -165,7 +172,7 @@ float SoundManager::getPitch()
 }
 
 
-float SoundManager::getVolume()
+float cSoundManager::getVolume()
 {
 	float temp;
 	m_Channel->getVolume(&temp);
@@ -173,20 +180,20 @@ float SoundManager::getVolume()
 }
 
 
-float SoundManager::getPan()
+float cSoundManager::getPan()
 {
 	return currentPan;
 }
 
 
-int SoundManager::getLoop()
+int cSoundManager::getLoop()
 {
 	int temp;
 	m_Channel->getLoopCount(&temp);
 	return temp;
 }
 
-FMOD::Sound* SoundManager::FindSoundBySoundName(std::string soundName)
+FMOD::Sound* cSoundManager::FindSoundBySoundName(std::string soundName)
 {
 	std::map< std::string, FMOD::Sound*>::iterator itSound = m_map_friendlyName_to_sound.find(soundName);
 
@@ -201,7 +208,7 @@ FMOD::Sound* SoundManager::FindSoundBySoundName(std::string soundName)
 	return itSound->second;
 }
 
-bool SoundManager::loadSoundsFromFile(std::string filename)
+bool cSoundManager::loadSoundsFromFile(std::string filename)
 {
 	// Loads sounds from file
 	// File should specify friendlyname to use with each sound and whether to use sample or stream
