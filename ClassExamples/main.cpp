@@ -39,7 +39,11 @@ cMediaPlayer *g_MediaPlayer;
 int main(int argc, char** argv)
 {
 	g_SoundManager = new cSoundManager();
-	g_SoundManager->Initialize("audio/aud_files.txt");
+	if (!g_SoundManager->Initialize("audio/aud_files.txt"))
+	{
+		std::cout << "Could not initialize the sound manager" << std::endl;
+		return 1;
+	 }
 // 	g_SoundManager.PlaySound("churchbell");
 // 	g_SoundManager.setPitch(3.0f);
 // 	PlaySound("audio/jaguar.wav");
@@ -73,7 +77,6 @@ int main(int argc, char** argv)
 // 		}
 // 	}
 	g_MediaPlayer = new cMediaPlayer(g_SoundManager);
-
 
 	g_MediaPlayer->startProgram();
 	g_SoundManager->Destroy();

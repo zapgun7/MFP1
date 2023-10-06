@@ -39,6 +39,7 @@ public:
 	float getPan();
 	int getLoop();
 	std::vector<std::string> getFriendlyNames();
+	std::vector<std::string> getCredits();
 
 	FMOD::Sound* FindSoundBySoundName(std::string);
 
@@ -55,5 +56,6 @@ private:
 	FMOD::Channel* m_Channel = nullptr;
 	FMOD_RESULT m_Result;
 	std::vector<std::string> friendlyNames;
+	std::vector<std::string> credits;
 	std::map<std::string, FMOD::Sound*> m_map_friendlyName_to_sound; // Map to store all loaded sounds
 };

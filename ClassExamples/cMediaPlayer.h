@@ -20,6 +20,7 @@ private:
 	bool isLooping;
 	std::string currAud;
 	std::vector<std::string> friendlyNames;
+	std::vector<std::string> credits;
 	cSoundManager* soundMangr;
 	FMOD::Channel* m_Channel;
 };

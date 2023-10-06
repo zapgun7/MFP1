@@ -23,6 +23,7 @@ cMediaPlayer::cMediaPlayer(cSoundManager* soundMan)
 	isLooping = false;
 	currAud = " ";
 	friendlyNames = soundMan->getFriendlyNames();
+	credits = soundMan->getCredits();
 	soundMangr = soundMan;
 }
 
@@ -93,18 +94,11 @@ bool cMediaPlayer::startProgram()
 
 	// Our state
 	bool show_demo_window = false;
-	bool show_another_window = false;
+	bool show_credits_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	// Main loop
-#ifdef __EMSCRIPTEN__
-	// For an Emscripten build we are disabling file-system access, so let's not attempt to do a fopen() of the imgui.ini file.
-	// You may manually call LoadIniSettingsFromMemory() to load settings from your own storage.
-	io.IniFilename = nullptr;
-	EMSCRIPTEN_MAINLOOP_BEGIN
-#else
 	while (!glfwWindowShouldClose(window))
-#endif
 	{
 		// Poll and handle events (inputs, window resize, etc.)
 		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -142,7 +136,7 @@ bool cMediaPlayer::startProgram()
 
 			if (isPaused)
 			{
-				if (ImGui::Button("Play"))
+				if (ImGui::Button("Play "))
 				{
 					isPaused = false;
 					soundMangr->setPausePlay(isPaused);
@@ -161,8 +155,9 @@ bool cMediaPlayer::startProgram()
 			{
 				if (ImGui::Button(friendlyNames[i * 5].c_str()))
 				{
-					m_Channel = soundMangr->PlaySound(friendlyNames[i * 5]);
-					currAud = friendlyNames[i * 5];
+					m_Channel = soundMangr->PlaySound(friendlyNames[i * 5]); // Play sound
+					currAud = friendlyNames[i * 5]; // Update text displaying currently playing audio
+					soundMangr->setPausePlay(isPaused); // Immediately set the pause/play state, so you can start audio paused
 				}
 				for (unsigned int e = 0; e < 4; e++)
 				{
@@ -171,6 +166,7 @@ bool cMediaPlayer::startProgram()
 					{
 						m_Channel = soundMangr->PlaySound(friendlyNames[i * 5 + e + 1]);
 						currAud = friendlyNames[i * 5 + e + 1];
+						soundMangr->setPausePlay(isPaused);
 					}
 				}
 			}
@@ -185,22 +181,39 @@ bool cMediaPlayer::startProgram()
 
 			ImGui::Text("\n");
 			ImGui::Checkbox("Loop", &isLooping);
+			ImGui::Text("\n\n\n");
+
+
+			if (show_credits_window) // Toggle credits window with one button
+			{
+				if (ImGui::Button("Credits"))
+					show_credits_window = false;
+			}
+			else
+			{
+				if (ImGui::Button("Credits"))
+					show_credits_window = true;
+			}
+			ImGui::SameLine();
+			ImGui::Text("          "); // Spacing between credits and exit button
+			ImGui::SameLine();
+			if (ImGui::Button("Exit"))
+				glfwSetWindowShouldClose(window, 1);
 
 
 
-
-// 			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-// 			ImGui::Checkbox("Another Window", &show_another_window);
-// 
-// 			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-// 			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-// 
-// 			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-// 				counter++;
-// 			ImGui::SameLine();
-// 			ImGui::Text("counter = %d", counter);
-// 
-// 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			// 			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+			// 			ImGui::Checkbox("Another Window", &show_another_window);
+			// 
+			// 			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+			// 			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+			// 
+			// 			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+			// 				counter++;
+			// 			ImGui::SameLine();
+			// 			ImGui::Text("counter = %d", counter);
+			// 
+			// 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
 		}
 
@@ -208,12 +221,17 @@ bool cMediaPlayer::startProgram()
 
 
 		// 3. Show another simple window.
-		if (show_another_window)
+		if (show_credits_window)
 		{
-			ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-			ImGui::Text("Hello from another window!");
-			if (ImGui::Button("Close Me"))
-				show_another_window = false;
+			ImGui::Begin("Audio Credits", &show_credits_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+			for (int i = 0; i < credits.size()/2; i++)
+			{
+				ImGui::Text(credits[i * 2].c_str());
+				ImGui::Text("   %s",credits[i * 2 + 1].c_str());
+				ImGui::Separator();
+			}
+			if (ImGui::Button("Close"))
+				show_credits_window = false;
 			ImGui::End();
 		}
 
@@ -235,9 +253,6 @@ bool cMediaPlayer::startProgram()
 		soundMangr->Update(volume, pitch, pan, isLooping); // gotta call it, important or something?
 		glfwSwapBuffers(window);
 	}
-#ifdef __EMSCRIPTEN__
-	EMSCRIPTEN_MAINLOOP_END;
-#endif
 
 	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();

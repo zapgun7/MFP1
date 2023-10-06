@@ -1,29 +1,29 @@
-CrystalCave - pixelsphere.org / The Cynic Project
+CrystalCave pixelsphere.org/The_Cynic_Project
 https://opengameart.org/content/crystal-cave-song18
 
-wind - Luke.RUSTLTD
+wind Luke.RUSTLTD
 https://opengameart.org/content/wind1
 
-EpicAmuletItem - CosmicD
+EpicAmuletItem CosmicD
 https://opengameart.org/content/epic-amulet-item
 
-RockBreaking - Blender Foundation
+RockBreaking Blender_Foundation
 https://opengameart.org/content/rockbreaking
 
-Laser - dklon
+Laser dklon
 https://opengameart.org/content/laser-fire 
 
-Churchbell - Ulrich Metzner & qudobup
+Churchbell Ulrich_Metzner_&_qudobup
 https://opengameart.org/content/church-bell
 
-Fire - PagDev
+Fire PagDev
 https://opengameart.org/content/fireplace-sound-loop
 
-MetalHit - Marcelo Fernandez/http://www.marcelofernandezmusic.com
+MetalHit Marcelo_Fernandez|http://www.marcelofernandezmusic.com
 https://opengameart.org/content/metal-hit
 
-RainGutter - Ogrebane
+RainGutter Ogrebane
 https://opengameart.org/content/rain-gutter-loop
 
-PathToLakeLand - Alexandr Zhelanov, https://soundcloud.com/alexandr-zhelanov
+PathToLakeLand Alexandr_Zhelanov|https://soundcloud.com/alexandr-zhelanov
 https://opengameart.org/content/path-to-lake-land

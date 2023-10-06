@@ -20,14 +20,14 @@ bool cSoundManager::Initialize(std::string loadFile)
 		return true;
 
 	FMOD_RESULT result;
-	result = FMOD::System_Create(&m_System);
+	result = FMOD::System_Create(&m_System); // Create system
 	if (result != FMOD_OK)
 	{
 		printf("Failed to create the FMOD System!\n");
 		return false;
 	}
 
-	result = m_System->init(1, FMOD_INIT_NORMAL, nullptr);
+	result = m_System->init(1, FMOD_INIT_NORMAL, nullptr); // Initialize system
 	if (result != FMOD_OK)
 	{
 		printf("Failed to initialize the system!\n");
@@ -40,8 +40,10 @@ bool cSoundManager::Initialize(std::string loadFile)
 		return false;
 	}
 
+	m_Channel->setMode(FMOD_LOOP_NORMAL);
+
 	// Load sound files into map
-	if (!(loadSoundsFromFile(loadFile)))
+	if (!(loadSoundsFromFile(loadFile))) 
 		return false;
 
 	currentPan = 0.0f; // Initialize pan of channel, cause there's no getPan()
@@ -62,12 +64,12 @@ void cSoundManager::Destroy()
 	while(it != m_map_friendlyName_to_sound.end()) // Iterates through the map to release all the sounds
 	{
 		it->second->release(); // Release sound
-		delete(it->second); // Delete pointer
+		//delete(it->second); // Delete pointer         // Causing an ungraceful program end     so it's created on the stack, probably bad for storing audio, eh?
 		it++;
 	}
 
-	result = m_Sound->release();
-	FMODCheckError(result);
+// 	result = m_Sound->release();    // Don't need to release this pointer as it is taken care of in the while loop above :)
+// 	FMODCheckError(result);
 
 	result = m_System->close();
 	FMODCheckError(result);
@@ -108,12 +110,10 @@ void cSoundManager::Update(float vol, float pit, float pan, bool isLooping)
 	setVolume(vol);
 	setPitch(pit);
 	setPan(pan);
-	if (isLooping)
-		setLoop(0);
-	else
-		setLoop(-1);
-	//setLoop(isLoop);   // should have loop and pause/play on their own things, shouldn't be updated every frame
-	// Add a pause/play!    or have it on its own function
+ 	if (isLooping)
+ 		setLoop(-1);
+ 	else
+ 		setLoop(0);
 
 
 	FMOD_RESULT result;
@@ -130,21 +130,21 @@ void cSoundManager::Update(float vol, float pit, float pan, bool isLooping)
 
 void cSoundManager::setPitch(float newPitch)
 {
-	// Do we want to let it go below 0? probably not. maybe clamp it at .05f or somrthing, since 0 would probably stop the audio
-	if (newPitch < 0.01f)
-	{
-		m_Channel->setPitch(0.01f);
-		return;
-	}
+	// Do we want to let it go below 0? probably not. maybe clamp it at .05f or something, since 0 would probably stop the audio
+// 	if (newPitch < 0.01f)
+// 	{
+// 		m_Channel->setPitch(0.01f);
+// 		return;
+// 	}
 	m_Channel->setPitch(newPitch);
 }
 
 
 void cSoundManager::setVolume(float newVolume)
 {
-	if (newVolume < 0.0f) // Make sure volume doesn't go below 0
+	if (newVolume < -2.0f) // Make sure volume doesn't go below -2
 	{
-		m_Channel->setVolume(0.0f);
+		m_Channel->setVolume(-2.0f);
 		return;
 	}
 	else if (newVolume > 2.0f) // Make sure volume doesn't go above 2, I don't want to accidentally blow out my ears/headphones :)
@@ -167,12 +167,14 @@ void cSoundManager::setPan(float newPan)
 
 void cSoundManager::setLoop(int loopState) // -1 = loop forever; 0 = oneshot (don't loop); anything over 0 is the number of times to loop
 {
-	if (loopState <= -1)
+	if (loopState < 0)
 	{
+		m_Channel->setMode(FMOD_LOOP_NORMAL); // Set channel mode to looping
 		m_Channel->setLoopCount(-1);
 		return;
 	}
 	m_Channel->setLoopCount(loopState);
+	return;
 }
 
 
@@ -215,6 +217,12 @@ int cSoundManager::getLoop()
 std::vector<std::string> cSoundManager::getFriendlyNames()
 {
 	return friendlyNames;
+}
+
+
+std::vector<std::string> cSoundManager::getCredits()
+{
+	return credits;
 }
 
 FMOD::Sound* cSoundManager::FindSoundBySoundName(std::string soundName)
@@ -294,6 +302,25 @@ bool cSoundManager::loadSoundsFromFile(std::string filename)
 		m_map_friendlyName_to_sound[friendlyName] = m_Sound; // Store friendlyname and related FMod Sound pointer in map
 		friendlyNames.push_back(friendlyName); // Add to vector storing just friendly names (media player uses this)
 	}
+	theAudioFile.close();
+
+	// Now loading the credits into a private vector
+	std::string tempStr;
+	std::ifstream theCreditsFile("audio/Credits.txt");
+	if (!theCreditsFile.is_open())
+	{
+		// didn't open the file.
+		return false;
+	}
+	while (theCreditsFile >> tempStr)
+	{
+		for (unsigned int i = 0; i < 2; i++) // Iterates through each "chunk" of credits, while loop checks if another "chunk" exists
+		{								     // Could've just looped off of numOfFiles, but still works and gives a different way to tackle a file like this
+			credits.push_back(tempStr);
+			theCreditsFile >> tempStr;
+		}
+	}
+	theCreditsFile.close();
 
 	return true;
 
