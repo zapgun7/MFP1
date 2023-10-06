@@ -1,4 +1,5 @@
 #include "cMediaPlayer.h"
+#include "cSoundManager.h"
 
 
 #include "imgui.h"
@@ -13,12 +14,16 @@
 #include <glfw3.h>
 
 
-cMediaPlayer::cMediaPlayer()
+cMediaPlayer::cMediaPlayer(cSoundManager* soundMan)
 {
 	volume = 1.0f;
 	pitch = 1.0f;
 	pan = 0.0f;
-	isPaused = true;
+	isPaused = false;
+	isLooping = false;
+	currAud = " ";
+	friendlyNames = soundMan->getFriendlyNames();
+	soundMangr = soundMan;
 }
 
 cMediaPlayer::~cMediaPlayer()
@@ -30,6 +35,9 @@ static void glfw_error_callback(int error, const char* description)
 {
 	fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
+
+
+
 
 bool cMediaPlayer::startProgram()
 {
@@ -84,7 +92,7 @@ bool cMediaPlayer::startProgram()
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
 	// Our state
-	bool show_demo_window = true;
+	bool show_demo_window = false;
 	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -110,32 +118,94 @@ bool cMediaPlayer::startProgram()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+
+
+
 		// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 		if (show_demo_window)
 			ImGui::ShowDemoWindow(&show_demo_window);
 
+
+
+
+
+
 		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
 		{
-			static float f = 0.0f;
-			static int counter = 0;
+			//static float f = 0.0f;
+			//static int counter = 0;
 
-			ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+			ImGui::Begin("Audio Player");                          // Create a window called "Hello, world!" and append into it.
 
-			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-			ImGui::Checkbox("Another Window", &show_another_window);
+			ImGui::Text("Currently Playing: %s", currAud.c_str());               // Display some text (you can use a format strings too)
+			ImGui::Separator();
 
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+			if (isPaused)
+			{
+				if (ImGui::Button("Play"))
+				{
+					isPaused = false;
+					soundMangr->setPausePlay(isPaused);
+				}
+			}
+			else
+			{
+				if (ImGui::Button("Pause"))
+				{
+					isPaused = true;
+					soundMangr->setPausePlay(isPaused);
+				}
+			}
+			ImGui::Text("\n\nAudio To Play:");
+			for (unsigned int i = 0; i < 2; i++)
+			{
+				if (ImGui::Button(friendlyNames[i * 5].c_str()))
+				{
+					m_Channel = soundMangr->PlaySound(friendlyNames[i * 5]);
+					currAud = friendlyNames[i * 5];
+				}
+				for (unsigned int e = 0; e < 4; e++)
+				{
+					ImGui::SameLine();
+					if (ImGui::Button(friendlyNames[i * 5 + e + 1].c_str()))
+					{
+						m_Channel = soundMangr->PlaySound(friendlyNames[i * 5 + e + 1]);
+						currAud = friendlyNames[i * 5 + e + 1];
+					}
+				}
+			}
 
-			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-				counter++;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", counter);
 
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::Text("\n\n");
+			ImGui::SliderFloat("Volume", &volume, -2.0f, 2.0f);
+
+			ImGui::SliderFloat("Pitch", &pitch, -10.0f, 10.0f);
+
+			ImGui::SliderFloat("Pan", &pan, -1.0f, 1.0f);
+
+			ImGui::Text("\n");
+			ImGui::Checkbox("Loop", &isLooping);
+
+
+
+
+// 			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+// 			ImGui::Checkbox("Another Window", &show_another_window);
+// 
+// 			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+// 			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+// 
+// 			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+// 				counter++;
+// 			ImGui::SameLine();
+// 			ImGui::Text("counter = %d", counter);
+// 
+// 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
 		}
+
+
+
 
 		// 3. Show another simple window.
 		if (show_another_window)
@@ -147,6 +217,12 @@ bool cMediaPlayer::startProgram()
 			ImGui::End();
 		}
 
+
+
+
+
+
+
 		// Rendering
 		ImGui::Render();
 		int display_w, display_h;
@@ -156,6 +232,7 @@ bool cMediaPlayer::startProgram()
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+		soundMangr->Update(volume, pitch, pan, isLooping); // gotta call it, important or something?
 		glfwSwapBuffers(window);
 	}
 #ifdef __EMSCRIPTEN__
@@ -169,6 +246,7 @@ bool cMediaPlayer::startProgram()
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+	//soundMangr->Destroy(); destroys it in the main?
 
 
 

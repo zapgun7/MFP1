@@ -79,31 +79,42 @@ void cSoundManager::Destroy()
 }
 
 
-void cSoundManager::PlaySound(FMOD::Sound* sound) // For calling from within this class
+FMOD::Channel* cSoundManager::PlaySound(FMOD::Sound* sound) // For calling from within this class
 {
 	if ((!m_Initialized) || (sound == NULL))
-		return;
+		return NULL;
 
 	FMOD_RESULT result;
 	result = m_System->playSound(sound, 0, false, &m_Channel);
 	if (result != FMOD_OK)
 	{
 		Destroy();
-		return;
+		return NULL;
 	}
+	return m_Channel;
 }
 
 
-void cSoundManager::PlaySound(std::string friendlyName) // For calling from other classes
+FMOD::Channel* cSoundManager::PlaySound(std::string friendlyName) // For calling from other classes
 {
-	PlaySound(FindSoundBySoundName(friendlyName));
-	return;
+	return PlaySound(FindSoundBySoundName(friendlyName));
 }
 
-void cSoundManager::Update()
+void cSoundManager::Update(float vol, float pit, float pan, bool isLooping)
 {
 	if (!m_Initialized)
 		return;
+
+	setVolume(vol);
+	setPitch(pit);
+	setPan(pan);
+	if (isLooping)
+		setLoop(0);
+	else
+		setLoop(-1);
+	//setLoop(isLoop);   // should have loop and pause/play on their own things, shouldn't be updated every frame
+	// Add a pause/play!    or have it on its own function
+
 
 	FMOD_RESULT result;
 	result = m_System->update();
@@ -156,12 +167,19 @@ void cSoundManager::setPan(float newPan)
 
 void cSoundManager::setLoop(int loopState) // -1 = loop forever; 0 = oneshot (don't loop); anything over 0 is the number of times to loop
 {
-	if (loopState < -1)
+	if (loopState <= -1)
 	{
 		m_Channel->setLoopCount(-1);
 		return;
 	}
 	m_Channel->setLoopCount(loopState);
+}
+
+
+void cSoundManager::setPausePlay(bool isPaused)
+{
+	m_Channel->setPaused(isPaused);
+	return;
 }
 
 float cSoundManager::getPitch()
@@ -191,6 +209,12 @@ int cSoundManager::getLoop()
 	int temp;
 	m_Channel->getLoopCount(&temp);
 	return temp;
+}
+
+
+std::vector<std::string> cSoundManager::getFriendlyNames()
+{
+	return friendlyNames;
 }
 
 FMOD::Sound* cSoundManager::FindSoundBySoundName(std::string soundName)
@@ -268,6 +292,7 @@ bool cSoundManager::loadSoundsFromFile(std::string filename)
 			}
 		}
 		m_map_friendlyName_to_sound[friendlyName] = m_Sound; // Store friendlyname and related FMod Sound pointer in map
+		friendlyNames.push_back(friendlyName); // Add to vector storing just friendly names (media player uses this)
 	}
 
 	return true;

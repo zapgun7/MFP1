@@ -2,6 +2,7 @@
 
 #include <map>
 #include<string>
+#include <vector>
 
 #include <fmod.hpp>
 #include "SoundUtils.h"
@@ -21,21 +22,23 @@ public:
 	void Destroy();
 
 	/*void PlaySound(FMOD::Sound* sound);*/
-	void PlaySound(std::string friendlyName);
+	FMOD::Channel* PlaySound(std::string friendlyName);
 
-	void Update();
+	void Update(float vol, float pit, float pan, bool isLooping);
 
 	// Setters
 	void setPitch(float newPitch);
 	void setVolume(float newVolume);
 	void setPan(float newPan);
 	void setLoop(int loopState);
+	void setPausePlay(bool isPaused);
 
 	// Getters
 	float getPitch();
 	float getVolume();
 	float getPan();
 	int getLoop();
+	std::vector<std::string> getFriendlyNames();
 
 	FMOD::Sound* FindSoundBySoundName(std::string);
 
@@ -43,7 +46,7 @@ private:
 	bool m_Initialized = false;
 	bool loadSoundsFromFile(std::string filename); // Initializes the map from a given file
 
-	void PlaySound(FMOD::Sound* sound); // 
+	FMOD::Channel* PlaySound(FMOD::Sound* sound); // 
 
 	float currentPan;
 
@@ -51,5 +54,6 @@ private:
 	FMOD::Sound* m_Sound = nullptr;
 	FMOD::Channel* m_Channel = nullptr;
 	FMOD_RESULT m_Result;
+	std::vector<std::string> friendlyNames;
 	std::map<std::string, FMOD::Sound*> m_map_friendlyName_to_sound; // Map to store all loaded sounds
 };

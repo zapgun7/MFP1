@@ -3,8 +3,8 @@
 #include <conio.h>
 #include "cMediaPlayer.h"
 
-cSoundManager g_SoundManager;
-cMediaPlayer g_MediaPlayer;
+cSoundManager *g_SoundManager;
+cMediaPlayer *g_MediaPlayer;
 
 // void PlaySound(const char* soundfile)
 // {
@@ -38,7 +38,8 @@ cMediaPlayer g_MediaPlayer;
 
 int main(int argc, char** argv)
 {
-// 	g_SoundManager.Initialize("audio/aud_files.txt");
+	g_SoundManager = new cSoundManager();
+	g_SoundManager->Initialize("audio/aud_files.txt");
 // 	g_SoundManager.PlaySound("churchbell");
 // 	g_SoundManager.setPitch(3.0f);
 // 	PlaySound("audio/jaguar.wav");
@@ -71,8 +72,13 @@ int main(int argc, char** argv)
 // 			}
 // 		}
 // 	}
-	g_MediaPlayer.startProgram();
-	g_SoundManager.Destroy();
+	g_MediaPlayer = new cMediaPlayer(g_SoundManager);
+
+
+	g_MediaPlayer->startProgram();
+	g_SoundManager->Destroy();
+	delete g_SoundManager;
+	delete g_MediaPlayer;
 	// 0 means successful, anything else is typically an "error"
 	return 0;
 }
