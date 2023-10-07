@@ -13,6 +13,9 @@ public:
 	bool startProgram(); // Starts the GUI; main loop is located in here
 
 private:
+	float rotatePower; // Graphics var
+	void updateScene(bool isPlaying, bool isPaused);
+
 	float volume;
 	float pitch;
 	float pan;

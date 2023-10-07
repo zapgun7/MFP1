@@ -90,6 +90,22 @@ void cLightManager::SetUniformLocations(GLuint shaderID)
 	//        vec4 param2;	// x = 0 for off, 1 for on
 	this->theLights[1].param2_UL = glGetUniformLocation(shaderID, "theLights[1].param2");
 
+	this->theLights[2].position_UL = glGetUniformLocation(shaderID, "theLights[2].position");
+	//		  vec4 ambient;
+	this->theLights[2].ambient_UL = glGetUniformLocation(shaderID, "theLights[2].ambient");
+	//        vec4 diffuse;	// Colour of the light (used for diffuse)
+	this->theLights[2].diffuse_UL = glGetUniformLocation(shaderID, "theLights[2].diffuse");
+	//        vec4 specular;	// rgb = highlight colour, w = power
+	this->theLights[2].specular_UL = glGetUniformLocation(shaderID, "theLights[2].specular");
+	//        vec4 atten;		// x = constant, y = linear, z = quadratic, w = DistanceCutOff
+	this->theLights[2].atten_UL = glGetUniformLocation(shaderID, "theLights[2].atten");
+	//        vec4 direction;	// Spot, directional lights
+	this->theLights[2].direction_UL = glGetUniformLocation(shaderID, "theLights[2].direction");
+	//        vec4 param1;	// x = lightType, y = inner angle, z = outer angle, w = TBD
+	this->theLights[2].param1_UL = glGetUniformLocation(shaderID, "theLights[2].param1");
+	//        vec4 param2;	// x = 0 for off, 1 for on
+	this->theLights[2].param2_UL = glGetUniformLocation(shaderID, "theLights[2].param2");
+
 	// And so on, for all the lights.
 
 

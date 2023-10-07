@@ -38,6 +38,7 @@ public:
 	float getVolume();
 	float getPan();
 	int getLoop();
+	bool getIsPlaying(); // Returns if channel is actively playing something
 	std::vector<std::string> getFriendlyNames();
 	std::vector<std::string> getCredits();
 

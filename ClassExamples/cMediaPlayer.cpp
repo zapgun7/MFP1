@@ -41,8 +41,7 @@
 // GRAPHICS FUNCTION SIGNATURE //////////////////////////////////
 cMesh* g_pFindMeshByFriendlyName(std::string friendlyNameToFind); 
 bool LoadModels(void);
-void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModel, GLuint shaderProgramID, double deltaTime);
-void updateScene();
+void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModel, GLuint shaderProgramID, double deltaTime ,float rotatePower);
 //////////////////////////////////////////////////////////////
 // GRAPHICS SETUP
 glm::vec3 g_cameraEye = glm::vec3(0.0, 0.0, 20.0f);
@@ -68,6 +67,7 @@ cMediaPlayer::cMediaPlayer(cSoundManager* soundMan)
 	friendlyNames = soundMan->getFriendlyNames();
 	credits = soundMan->getCredits();
 	soundMangr = soundMan;
+	rotatePower = 1;
 }
 
 cMediaPlayer::~cMediaPlayer()
@@ -168,18 +168,15 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[0].position.x = 8.0f;
 	::g_pTheLights->theLights[0].position.y = 5.0f;
 	::g_pTheLights->theLights[0].position.z = 5.0f;
-	::g_pTheLights->theLights[0].direction.w = 0.5f; // Light power
+	::g_pTheLights->theLights[0].direction.w = 1.0f; // Light power
 
-	g_pTheLights->theLights[0].diffuse.x = 0.5f;
-	g_pTheLights->theLights[0].diffuse.y = 0.0f;
-	g_pTheLights->theLights[0].diffuse.z = 0.0f;
-	g_pTheLights->theLights[0].specular.x = 1.0f;
-	g_pTheLights->theLights[0].specular.y = 1.0f;
-	g_pTheLights->theLights[0].specular.z = 1.0f;
+	::g_pTheLights->theLights[0].diffuse.x = 0.01f;
+	::g_pTheLights->theLights[0].diffuse.y = 0.0f;
+	::g_pTheLights->theLights[0].diffuse.z = 0.0f;
+	::g_pTheLights->theLights[0].specular.x = 1.0f;
+	::g_pTheLights->theLights[0].specular.y = 1.0f;
+	::g_pTheLights->theLights[0].specular.z = 1.0f;
 
-	// How "bright" the lights is
-	// Really the opposite of brightness.
-	//  how dim do you want this
 	::g_pTheLights->theLights[0].atten.x = 0.0f;        // Constant attenuation
 	::g_pTheLights->theLights[0].atten.y = 0.05f;        // Linear attenuation
 	::g_pTheLights->theLights[0].atten.z = 0.9f;        // Quadratic attenuation
@@ -193,22 +190,39 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[1].position.x = -8.0f;
 	::g_pTheLights->theLights[1].position.y = 5.0f;
 	::g_pTheLights->theLights[1].position.z = 0.0f;
-	::g_pTheLights->theLights[1].direction.w = 10.0f; // Light power
+	::g_pTheLights->theLights[1].direction.w = 1.0f; // Light power
 
-	g_pTheLights->theLights[1].diffuse.x = 0.01f;
-	g_pTheLights->theLights[1].diffuse.y = 0.0f;
-	g_pTheLights->theLights[1].diffuse.z = 3.0f;
-	g_pTheLights->theLights[1].specular.x = 1.0f;
-	g_pTheLights->theLights[1].specular.y = 0.0f;
-	g_pTheLights->theLights[1].specular.z = 1.0f;
+	::g_pTheLights->theLights[1].diffuse.x = 0.01f;
+	::g_pTheLights->theLights[1].diffuse.y = 0.0f;
+	::g_pTheLights->theLights[1].diffuse.z = 3.0f;
+	::g_pTheLights->theLights[1].specular.x = 1.0f;
+	::g_pTheLights->theLights[1].specular.y = 0.0f;
+	::g_pTheLights->theLights[1].specular.z = 1.0f;
 
-
-	// How "bright" the lights is
-	// Really the opposite of brightness.
-	//  how dim do you want this
 	::g_pTheLights->theLights[1].atten.x = 0.0f;        // Constant attenuation
 	::g_pTheLights->theLights[1].atten.y = 0.05f;        // Linear attenuation
 	::g_pTheLights->theLights[1].atten.z = 0.9f;        // Quadratic attenuation
+
+	::g_pTheLights->theLights[2].param2.x = 1.0f;   // Turn on
+	::g_pTheLights->theLights[2].param1.x = 1.0f;   // 0 = point light
+	::g_pTheLights->theLights[2].param1.y = 1.0f;
+	::g_pTheLights->theLights[2].param1.z = 20.0f;
+
+	::g_pTheLights->theLights[2].position.x = -8.0f;
+	::g_pTheLights->theLights[2].position.y = 5.0f;
+	::g_pTheLights->theLights[2].position.z = 0.0f;
+	::g_pTheLights->theLights[2].direction.w = 1.0f; // Light power
+
+	::g_pTheLights->theLights[2].diffuse.x = 0.005f;
+	::g_pTheLights->theLights[2].diffuse.y = 1.5f;
+	::g_pTheLights->theLights[2].diffuse.z = 1.0f;
+	::g_pTheLights->theLights[2].specular.x = 1.0f;
+	::g_pTheLights->theLights[2].specular.y = 0.0f;
+	::g_pTheLights->theLights[2].specular.z = 1.0f;
+
+	::g_pTheLights->theLights[2].atten.x = 0.0f;        // Constant attenuation
+	::g_pTheLights->theLights[2].atten.y = 0.05f;        // Linear attenuation
+	::g_pTheLights->theLights[2].atten.z = 0.9f;        // Quadratic attenuation
 
 
 	//    glm::vec3 cameraEye = glm::vec3(10.0, 5.0, -15.0f);
@@ -378,8 +392,7 @@ bool cMediaPlayer::startProgram()
 		}
 
 
-
-
+		std::cout << rotatePower << std::endl;
 
 
 
@@ -444,7 +457,7 @@ bool cMediaPlayer::startProgram()
 
 		// *********************************************************************
 		// Draw all the objects
-		updateScene();
+		updateScene(soundMangr->getIsPlaying(), isPaused);
 		::g_pTheLights->UpdateUniformValues(shaderProgramID);
 		for (unsigned int index = 0; index != ::g_vec_pMeshesToDraw.size(); index++)
 		{
@@ -455,7 +468,7 @@ bool cMediaPlayer::startProgram()
 
 				glm::mat4 matModel = glm::mat4(1.0f);   // Identity matrix
 
-				DrawObject(pCurrentMesh, matModel, shaderProgramID, deltaTime);
+				DrawObject(pCurrentMesh, matModel, shaderProgramID, deltaTime, rotatePower);
 			}//if (pCurrentMesh->bIsVisible)
 
 		}
@@ -506,14 +519,14 @@ cMesh* g_pFindMeshByFriendlyName(std::string friendlyNameToFind)
 	// Didn't find it
 	return NULL;
 }
-void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProgramID, double deltaTime)
+void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProgramID, double deltaTime, float rotatePower)
 {
 
 	//         mat4x4_identity(m);
 	glm::mat4 matModel = matModelParent;
 
 
-	pCurrentMesh->drawPosition.y = sin(glfwGetTime());
+	pCurrentMesh->drawPosition.y = sin(glfwGetTime()); // constant bob
 
 
 	// Translation
@@ -528,7 +541,7 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 		pCurrentMesh->orientation.x, // (float)glfwGetTime(),
 		glm::vec3(1.0f, 0.0, 0.0f));
 
-	pCurrentMesh->orientation.y += deltaTime/10;
+	pCurrentMesh->orientation.y += deltaTime/(3 - 3*(rotatePower/11)); // not constant >:(
 
 	glm::mat4 matRotateY = glm::rotate(glm::mat4(1.0f),
 		pCurrentMesh->orientation.y, // (float)glfwGetTime(),
@@ -649,9 +662,37 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 
 	return;
 }
-void updateScene()
+void cMediaPlayer::updateScene(bool isPlaying, bool isPaused)
 {
-	int rotateSpeed = 1; // less = more!
+	float rotateRampSpeed = 0.03f; // Might want to look into easing functions
+	float lightRampSpeed = 0.03f;
+
+	if (isPlaying && !isPaused) // If audio is currently playing
+	{
+		if (rotatePower < 10) // Ramp up rotational speed
+			rotatePower += rotateRampSpeed;
+		if (::g_pTheLights->theLights[0].direction.w < 10.0f) // Power up the lights
+		{
+			for (unsigned int i = 0; i < 3; i++)
+			{
+				::g_pTheLights->theLights[i].direction.w += lightRampSpeed;
+			}
+		}
+	}
+	else // If no audio is playing
+	{
+		if (rotatePower > 1) // Ramp down rotational speed of poly
+			rotatePower -= rotateRampSpeed;
+		if (::g_pTheLights->theLights[0].direction.w > 1.0f) // Power down the lightss
+		{
+			for (unsigned int i = 0; i < 3; i++)
+			{
+				::g_pTheLights->theLights[i].direction.w -= lightRampSpeed;
+			}
+		}
+	}
+
+	int rotateSpeed = 2;
 	int amplitude = 8;
 
 	::g_pTheLights->theLights[0].position.x = amplitude * sin(sin(3 * sin(glfwGetTime() / rotateSpeed)));
@@ -662,6 +703,10 @@ void updateScene()
 	::g_pTheLights->theLights[1].position.z = -amplitude * cos(3 * cos(2 * cos(glfwGetTime() / rotateSpeed)));
 	::g_pTheLights->theLights[1].position.y = -amplitude * sin(2 * cos(4 * sin(glfwGetTime() / (rotateSpeed * 5) + 1.57f)));
 
+	::g_pTheLights->theLights[2].position.x = -amplitude * cos(3 * sin(cos(glfwGetTime() / (rotateSpeed * 3) + 1.57f)));
+	::g_pTheLights->theLights[2].position.z = amplitude * cos(3 * sin(cos(glfwGetTime() / (rotateSpeed * 3))));
+	::g_pTheLights->theLights[2].position.y = -amplitude * tan(0.7 * tan(cos(glfwGetTime() / (rotateSpeed * 5))));
+
 
 	glm::vec3 polypos = glm::vec3(::g_vec_pMeshesToDraw[0]->drawPosition.x, ::g_vec_pMeshesToDraw[0]->drawPosition.y, ::g_vec_pMeshesToDraw[0]->drawPosition.z);
 	::g_pTheLights->theLights[0].direction.x = polypos.x - ::g_pTheLights->theLights[0].position.x;
@@ -670,6 +715,10 @@ void updateScene()
 	::g_pTheLights->theLights[1].direction.x = polypos.x - ::g_pTheLights->theLights[1].position.x;
 	::g_pTheLights->theLights[1].direction.y = polypos.y - ::g_pTheLights->theLights[1].position.y; // Try to put walls, floor, ceiling behind the poly
 	::g_pTheLights->theLights[1].direction.z = polypos.z - ::g_pTheLights->theLights[1].position.z; // Make it absorb barely any light, so the "room" reflects the little bit of light scattered by the light sources
+	::g_pTheLights->theLights[2].direction.x = polypos.x - ::g_pTheLights->theLights[2].position.x;
+	::g_pTheLights->theLights[2].direction.y = polypos.y - ::g_pTheLights->theLights[2].position.y;
+	::g_pTheLights->theLights[2].direction.z = polypos.z - ::g_pTheLights->theLights[2].position.z;
+
 
 	return;
 }

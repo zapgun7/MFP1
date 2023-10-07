@@ -214,6 +214,13 @@ int cSoundManager::getLoop()
 }
 
 
+bool cSoundManager::getIsPlaying()
+{
+	bool temp;
+	m_Channel->isPlaying(&temp);
+	return temp;
+}
+
 std::vector<std::string> cSoundManager::getFriendlyNames()
 {
 	return friendlyNames;
