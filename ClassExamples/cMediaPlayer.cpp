@@ -1,17 +1,60 @@
 #include "cMediaPlayer.h"
 #include "cSoundManager.h"
 
+// GRAPHICS INCLUDES
+#include "OpenGLCommon.h"
+#include <glm/glm.hpp>
+#include <glm/vec3.hpp> // glm::vec3
+#include <glm/vec4.hpp> // glm::vec4
+#include <glm/mat4x4.hpp> // glm::mat4
+#include <glm/gtc/matrix_transform.hpp> 
+// glm::translate, glm::rotate, glm::scale, glm::perspective
+#include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string>
+#include <iostream>
+
+#include "Basic Shader Manager/cShaderManager.h"
+#include "cVAOManager/cVAOManager.h"
+
+//#include "GLWF_CallBacks.h" // keyboard and mouse input
+
+#include "cMesh.h"
+
+#include "cLightManager.h"
+//#include "cLightHelper.h"
+// ///////////////////
+
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_glfw.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
 #include <stdio.h>
 #ifdef __APPLE__
 //#define GL_SILENCE_DEPRECATION
 #endif
-#include <glad.h>
+#include <glad/glad.h>
 #define GLFW_INCLUDE_NONE
-#include <glfw3.h>
+#include <GLFW/include/glfw3.h>
+
+// GRAPHICS FUNCTION SIGNATURE //////////////////////////////////
+cMesh* g_pFindMeshByFriendlyName(std::string friendlyNameToFind); 
+bool LoadModels(void);
+void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModel, GLuint shaderProgramID, double deltaTime);
+void updateScene();
+//////////////////////////////////////////////////////////////
+// GRAPHICS SETUP
+glm::vec3 g_cameraEye = glm::vec3(0.0, 0.0, 20.0f);
+glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 g_upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+
+
+
+cVAOManager* g_pMeshManager = NULL;
+std::vector< cMesh* > g_vec_pMeshesToDraw;
+cLightManager* g_pTheLights = NULL;
+/////////////////////
 
 
 cMediaPlayer::cMediaPlayer(cSoundManager* soundMan)
@@ -76,6 +119,105 @@ bool cMediaPlayer::startProgram()
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 	glfwSwapInterval(1); // Enable vsync
 
+	// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// ///////////////////// GRAPHICS STUFF/////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	cShaderManager* pShaderThing = new cShaderManager();
+	pShaderThing->setBasePath("assets/shaders");
+
+	cShaderManager::cShader vertexShader;
+	vertexShader.fileName = "vertexShader01.glsl";
+
+	cShaderManager::cShader fragmentShader;
+	fragmentShader.fileName = "fragmentShader01.glsl";
+
+	if (!pShaderThing->createProgramFromFile("shader01", vertexShader, fragmentShader))
+	{
+		std::cout << "Error: Couldn't compile or link:" << std::endl;
+		std::cout << pShaderThing->getLastError();
+		return -1;
+	}
+	GLuint shaderProgramID = pShaderThing->getIDFromFriendlyName("shader01");
+
+	::g_pMeshManager = new cVAOManager();
+
+	::g_pMeshManager->setBasePath("assets/models");
+
+
+	sModelDrawInfo polyDrawingInfo;
+	::g_pMeshManager->LoadModelIntoVAO("somepoly.ply",
+		polyDrawingInfo, shaderProgramID);
+	std::cout << "Loaded: " << polyDrawingInfo.numberOfVertices << " vertices" << std::endl;
+
+
+
+	// 
+	LoadModels();
+
+
+	::g_pTheLights = new cLightManager();
+	// 
+	::g_pTheLights->SetUniformLocations(shaderProgramID);
+
+	::g_pTheLights->theLights[0].param2.x = 1.0f;   // Turn on
+	::g_pTheLights->theLights[0].param1.x = 1.0f;   // 0 = point light
+	::g_pTheLights->theLights[0].param1.y = 1.0f;
+	::g_pTheLights->theLights[0].param1.z = 120.0f;
+
+	::g_pTheLights->theLights[0].position.x = 8.0f;
+	::g_pTheLights->theLights[0].position.y = 5.0f;
+	::g_pTheLights->theLights[0].position.z = 5.0f;
+	::g_pTheLights->theLights[0].direction.w = 0.5f; // Light power
+
+	g_pTheLights->theLights[0].diffuse.x = 0.5f;
+	g_pTheLights->theLights[0].diffuse.y = 0.0f;
+	g_pTheLights->theLights[0].diffuse.z = 0.0f;
+	g_pTheLights->theLights[0].specular.x = 1.0f;
+	g_pTheLights->theLights[0].specular.y = 1.0f;
+	g_pTheLights->theLights[0].specular.z = 1.0f;
+
+	// How "bright" the lights is
+	// Really the opposite of brightness.
+	//  how dim do you want this
+	::g_pTheLights->theLights[0].atten.x = 0.0f;        // Constant attenuation
+	::g_pTheLights->theLights[0].atten.y = 0.05f;        // Linear attenuation
+	::g_pTheLights->theLights[0].atten.z = 0.9f;        // Quadratic attenuation
+
+
+	::g_pTheLights->theLights[1].param2.x = 1.0f;   // Turn on
+	::g_pTheLights->theLights[1].param1.x = 1.0f;   // 0 = point light
+	::g_pTheLights->theLights[1].param1.y = 1.0f;
+	::g_pTheLights->theLights[1].param1.z = 20.0f;
+
+	::g_pTheLights->theLights[1].position.x = -8.0f;
+	::g_pTheLights->theLights[1].position.y = 5.0f;
+	::g_pTheLights->theLights[1].position.z = 0.0f;
+	::g_pTheLights->theLights[1].direction.w = 10.0f; // Light power
+
+	g_pTheLights->theLights[1].diffuse.x = 0.01f;
+	g_pTheLights->theLights[1].diffuse.y = 0.0f;
+	g_pTheLights->theLights[1].diffuse.z = 3.0f;
+	g_pTheLights->theLights[1].specular.x = 1.0f;
+	g_pTheLights->theLights[1].specular.y = 0.0f;
+	g_pTheLights->theLights[1].specular.z = 1.0f;
+
+
+	// How "bright" the lights is
+	// Really the opposite of brightness.
+	//  how dim do you want this
+	::g_pTheLights->theLights[1].atten.x = 0.0f;        // Constant attenuation
+	::g_pTheLights->theLights[1].atten.y = 0.05f;        // Linear attenuation
+	::g_pTheLights->theLights[1].atten.z = 0.9f;        // Quadratic attenuation
+
+
+	//    glm::vec3 cameraEye = glm::vec3(10.0, 5.0, -15.0f);
+	float yaxisRotation = 0.0f;
+
+	double lastTime = glfwGetTime();
+	
+	// //////////////////////////////////////////////////////////////////////////////////////////////
+	// //////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -105,7 +247,7 @@ bool cMediaPlayer::startProgram()
 		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
 		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
 		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-		glfwPollEvents();
+		//glfwPollEvents();
 
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
@@ -124,7 +266,7 @@ bool cMediaPlayer::startProgram()
 
 
 
-		// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+		// 2. The main window we control our audio from
 		{
 			//static float f = 0.0f;
 			//static int counter = 0;
@@ -220,7 +362,7 @@ bool cMediaPlayer::startProgram()
 
 
 
-		// 3. Show another simple window.
+		// 3. The credits window. We can open this from the main window created above
 		if (show_credits_window)
 		{
 			ImGui::Begin("Audio Credits", &show_credits_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
@@ -243,11 +385,90 @@ bool cMediaPlayer::startProgram()
 
 		// Rendering
 		ImGui::Render();
-		int display_w, display_h;
-		glfwGetFramebufferSize(window, &display_w, &display_h);
-		glViewport(0, 0, display_w, display_h);
-		glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-		glClear(GL_COLOR_BUFFER_BIT);
+// 		int display_w, display_h;
+// 		glfwGetFramebufferSize(window, &display_w, &display_h);
+// 		glViewport(0, 0, display_w, display_h);
+// 		glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+// 		glClear(GL_COLOR_BUFFER_BIT);
+		// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// ////////////////////////GRAPHICS STUFF//////////////////////////////////////////////////////////////////////
+		// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+		float ratio;
+		int width, height;
+
+		glUseProgram(shaderProgramID);
+
+		glfwGetFramebufferSize(window, &width, &height);
+		ratio = width / (float)height;
+
+		glViewport(0, 0, width, height);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// While drawing a pixel, see if the pixel that's already there is closer or not?
+		glEnable(GL_DEPTH_TEST);
+		// (Usually) the default - does NOT draw "back facing" triangles
+		glCullFace(GL_BACK);
+		
+
+		::g_pTheLights->UpdateUniformValues(shaderProgramID);
+
+		//uniform vec4 eyeLocation;
+		GLint eyeLocation_UL = glGetUniformLocation(shaderProgramID, "eyeLocation");
+		glUniform4f(eyeLocation_UL,
+			::g_cameraEye.x, ::g_cameraEye.y, ::g_cameraEye.z, 1.0f);
+
+
+
+		//       //mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+		glm::mat4 matProjection = glm::perspective(0.6f,
+			ratio,
+			0.1f,
+			1000.0f);
+
+		glm::mat4 matView = glm::lookAt(::g_cameraEye,
+			::g_cameraTarget,
+			::g_upVector);
+
+		GLint matProjection_UL = glGetUniformLocation(shaderProgramID, "matProjection");
+		glUniformMatrix4fv(matProjection_UL, 1, GL_FALSE, glm::value_ptr(matProjection));
+
+		GLint matView_UL = glGetUniformLocation(shaderProgramID, "matView");
+		glUniformMatrix4fv(matView_UL, 1, GL_FALSE, glm::value_ptr(matView));
+
+		// Time per frame (more or less)
+		double currentTime = glfwGetTime();
+		double deltaTime = currentTime - lastTime;
+		//        std::cout << deltaTime << std::endl;
+		lastTime = currentTime;
+
+
+		// *********************************************************************
+		// Draw all the objects
+		updateScene();
+		::g_pTheLights->UpdateUniformValues(shaderProgramID);
+		for (unsigned int index = 0; index != ::g_vec_pMeshesToDraw.size(); index++)
+		{
+			cMesh* pCurrentMesh = ::g_vec_pMeshesToDraw[index];
+
+			if (pCurrentMesh->bIsVisible)
+			{
+
+				glm::mat4 matModel = glm::mat4(1.0f);   // Identity matrix
+
+				DrawObject(pCurrentMesh, matModel, shaderProgramID, deltaTime);
+			}//if (pCurrentMesh->bIsVisible)
+
+		}
+		// *********************************************************************
+
+
+
+
+
+		//glfwSwapBuffers(window);
+		glfwPollEvents();
+		// //////////////////////////////////////////////////////////////////////////////////////
+		// //////////////////////////////////////////////////////////////////////////////////////
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		soundMangr->Update(volume, pitch, pan, isLooping); // gotta call it, important or something?
@@ -266,4 +487,189 @@ bool cMediaPlayer::startProgram()
 
 
 	return true;
+}
+
+
+
+
+// GRAPHICS FUNCITONS /////////////////////////////
+cMesh* g_pFindMeshByFriendlyName(std::string friendlyNameToFind)
+{
+	for (unsigned int index = 0; index != ::g_vec_pMeshesToDraw.size(); index++)
+	{
+		if (::g_vec_pMeshesToDraw[index]->friendlyName == friendlyNameToFind)
+		{
+			// Found it
+			return ::g_vec_pMeshesToDraw[index];
+		}
+	}
+	// Didn't find it
+	return NULL;
+}
+void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProgramID, double deltaTime)
+{
+
+	//         mat4x4_identity(m);
+	glm::mat4 matModel = matModelParent;
+
+
+	pCurrentMesh->drawPosition.y = sin(glfwGetTime());
+
+
+	// Translation
+	glm::mat4 matTranslate = glm::translate(glm::mat4(1.0f),
+		glm::vec3(pCurrentMesh->drawPosition.x,
+			pCurrentMesh->drawPosition.y ,
+			pCurrentMesh->drawPosition.z));
+
+
+	// Rotation matrix generation
+	glm::mat4 matRotateX = glm::rotate(glm::mat4(1.0f),
+		pCurrentMesh->orientation.x, // (float)glfwGetTime(),
+		glm::vec3(1.0f, 0.0, 0.0f));
+
+	pCurrentMesh->orientation.y += deltaTime/10;
+
+	glm::mat4 matRotateY = glm::rotate(glm::mat4(1.0f),
+		pCurrentMesh->orientation.y, // (float)glfwGetTime(),
+		glm::vec3(0.0f, 1.0, 0.0f));
+
+	glm::mat4 matRotateZ = glm::rotate(glm::mat4(1.0f),
+		pCurrentMesh->orientation.z, // (float)glfwGetTime(),
+		glm::vec3(0.0f, 0.0, 1.0f));
+
+	// Scaling matrix
+	glm::mat4 matScale = glm::scale(glm::mat4(1.0f),
+		glm::vec3(pCurrentMesh->scale,
+			pCurrentMesh->scale,
+			pCurrentMesh->scale));
+	//--------------------------------------------------------------
+
+	// Combine all these transformation
+	matModel = matModel * matTranslate;
+
+	matModel = matModel * matRotateX;
+	matModel = matModel * matRotateY;
+	matModel = matModel * matRotateZ;
+
+	matModel = matModel * matScale;
+
+	//        m = m * rotateZ;
+	//        m = m * rotateY;
+	//        m = m * rotateZ;
+
+
+
+	   //mat4x4_mul(mvp, p, m);
+	//    glm::mat4 mvp = matProjection * matView * matModel;
+
+	//    GLint mvp_location = glGetUniformLocation(shaderProgramID, "MVP");
+	//    //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+	//    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	GLint matModel_UL = glGetUniformLocation(shaderProgramID, "matModel");
+	glUniformMatrix4fv(matModel_UL, 1, GL_FALSE, glm::value_ptr(matModel));
+
+
+	// Also calculate and pass the "inverse transpose" for the model matrix
+	glm::mat4 matModel_InverseTranspose = glm::inverse(glm::transpose(matModel));
+
+	// uniform mat4 matModel_IT;
+	GLint matModel_IT_UL = glGetUniformLocation(shaderProgramID, "matModel_IT");
+	glUniformMatrix4fv(matModel_IT_UL, 1, GL_FALSE, glm::value_ptr(matModel_InverseTranspose));
+
+	glm::vec4 trucol;
+	if (pCurrentMesh->bIsWireframe)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glLineWidth(5);
+		trucol = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	else
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		trucol = glm::vec4(255.0f, 1.0f, 1.0f, 1.0f);
+	}
+
+	// uniform mat4 matModel_IT;
+	GLint trueColor_UL = glGetUniformLocation(shaderProgramID, "trueColor");
+	glUniform4f(trueColor_UL,
+		trucol.x, trucol.y, trucol.z, 1.0f);
+
+	//        glPointSize(10.0f);
+
+
+			// uniform bool bDoNotLight;
+	GLint bDoNotLight_UL = glGetUniformLocation(shaderProgramID, "bDoNotLight");
+
+	if (pCurrentMesh->bDoNotLight)
+	{
+		// Set uniform to true
+		glUniform1f(bDoNotLight_UL, (GLfloat)GL_TRUE);
+	}
+	else
+	{
+		// Set uniform to false;
+		glUniform1f(bDoNotLight_UL, (GLfloat)GL_FALSE);
+	}
+
+	//uniform bool bUseDebugColour;	
+	GLint bUseDebugColour_UL = glGetUniformLocation(shaderProgramID, "bUseDebugColour");
+	if (pCurrentMesh->bUseDebugColours)
+	{
+		glUniform1f(bUseDebugColour_UL, (GLfloat)GL_TRUE);
+		//uniform vec4 debugColourRGBA;
+		GLint debugColourRGBA_UL = glGetUniformLocation(shaderProgramID, "debugColourRGBA");
+		glUniform4f(debugColourRGBA_UL,
+			pCurrentMesh->wholeObjectDebugColourRGBA.r,
+			pCurrentMesh->wholeObjectDebugColourRGBA.g,
+			pCurrentMesh->wholeObjectDebugColourRGBA.b,
+			pCurrentMesh->wholeObjectDebugColourRGBA.a);
+	}
+	else
+	{
+		glUniform1f(bUseDebugColour_UL, (GLfloat)GL_FALSE);
+	}
+
+
+
+	sModelDrawInfo modelInfo;
+	if (::g_pMeshManager->FindDrawInfoByModelName(pCurrentMesh->meshName, modelInfo))
+	{
+		// Found it!!!
+
+		glBindVertexArray(modelInfo.VAO_ID); 		//  enable VAO (and everything else)
+		glDrawElements(GL_TRIANGLES,
+			modelInfo.numberOfIndices,
+			GL_UNSIGNED_INT,
+			0);
+		glBindVertexArray(0); 			            // disable VAO (and everything else)
+
+	}
+
+	return;
+}
+void updateScene()
+{
+	int rotateSpeed = 1; // less = more!
+	int amplitude = 8;
+
+	::g_pTheLights->theLights[0].position.x = amplitude * sin(sin(3 * sin(glfwGetTime() / rotateSpeed)));
+	::g_pTheLights->theLights[0].position.z = amplitude * sin(sin(3 * sin(glfwGetTime() / rotateSpeed + 1.57f)));
+	::g_pTheLights->theLights[0].position.y = amplitude * sin(2 * cos(4 * sin(glfwGetTime() / (rotateSpeed * 5))));
+
+	::g_pTheLights->theLights[1].position.x = -amplitude * cos(3 * cos(2 * cos(glfwGetTime() / rotateSpeed + 1.57f)));
+	::g_pTheLights->theLights[1].position.z = -amplitude * cos(3 * cos(2 * cos(glfwGetTime() / rotateSpeed)));
+	::g_pTheLights->theLights[1].position.y = -amplitude * sin(2 * cos(4 * sin(glfwGetTime() / (rotateSpeed * 5) + 1.57f)));
+
+
+	glm::vec3 polypos = glm::vec3(::g_vec_pMeshesToDraw[0]->drawPosition.x, ::g_vec_pMeshesToDraw[0]->drawPosition.y, ::g_vec_pMeshesToDraw[0]->drawPosition.z);
+	::g_pTheLights->theLights[0].direction.x = polypos.x - ::g_pTheLights->theLights[0].position.x;
+	::g_pTheLights->theLights[0].direction.y = polypos.y - ::g_pTheLights->theLights[0].position.y; 
+	::g_pTheLights->theLights[0].direction.z = polypos.z - ::g_pTheLights->theLights[0].position.z;
+	::g_pTheLights->theLights[1].direction.x = polypos.x - ::g_pTheLights->theLights[1].position.x;
+	::g_pTheLights->theLights[1].direction.y = polypos.y - ::g_pTheLights->theLights[1].position.y; // Try to put walls, floor, ceiling behind the poly
+	::g_pTheLights->theLights[1].direction.z = polypos.z - ::g_pTheLights->theLights[1].position.z; // Make it absorb barely any light, so the "room" reflects the little bit of light scattered by the light sources
+
+	return;
 }

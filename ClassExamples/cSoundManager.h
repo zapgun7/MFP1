@@ -4,7 +4,7 @@
 #include<string>
 #include <vector>
 
-#include <fmod.hpp>
+#include <fmod/include/fmod.hpp>
 #include "SoundUtils.h"
 
 // This can be a singleton, but we are not focusing on 

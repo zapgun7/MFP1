@@ -19,6 +19,24 @@
     <Filter Include="imgui\backends">
       <UniqueIdentifier>{82562c0a-7c94-4040-ac40-632447e724c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{24b0aee4-0c5f-4be5-b6aa-9311ef14737b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\cMesh">
+      <UniqueIdentifier>{b5514824-37f6-4ecf-98dc-9fc6bfb22587}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\ShaderManager">
+      <UniqueIdentifier>{8e800a28-740d-41cf-99c8-8f4a976668db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Other">
+      <UniqueIdentifier>{c573f433-edf9-4bb8-baf4-c1aef56fc126}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Lights">
+      <UniqueIdentifier>{13af6fdd-9c3f-42c5-8b3e-59bba9de610d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\MeshObjectManager">
+      <UniqueIdentifier>{a17d1bed-3e8c-47ed-8746-6bdfa272dd1c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -57,6 +75,24 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cMesh.cpp">
+      <Filter>Rendering\cMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="cLightManager.cpp">
+      <Filter>Rendering\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="cVAOManager\cVAOManager.cpp">
+      <Filter>Rendering\MeshObjectManager</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadModels.cpp">
+      <Filter>Rendering\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Basic Shader Manager\cShader.cpp">
+      <Filter>Rendering\ShaderManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Basic Shader Manager\cShaderManager.cpp">
+      <Filter>Rendering\ShaderManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cSoundManager.h">
@@ -94,6 +130,21 @@
     </ClInclude>
     <ClInclude Include="..\extern\imgui\backends\imgui_impl_opengl3_loader.h">
       <Filter>imgui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="cMesh.h">
+      <Filter>Rendering\cMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="cLightManager.h">
+      <Filter>Rendering\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="cVAOManager\cVAOManager.h">
+      <Filter>Rendering\MeshObjectManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Basic Shader Manager\cShaderManager.h">
+      <Filter>Rendering\ShaderManager</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenGLCommon.h">
+      <Filter>Rendering\Other</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

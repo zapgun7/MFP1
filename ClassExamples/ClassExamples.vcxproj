@@ -111,7 +111,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)extern\fmod\include;$(SolutionDir)extern\GLFW\include;$(SolutionDir)extern\imgui;$(SolutionDir)extern\imgui\backends;$(SolutionDir)extern\glad;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extern;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,7 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)extern\fmod\include;$(SolutionDir)extern\GLFW\include;$(SolutionDir)extern\imgui;$(SolutionDir)extern\imgui\backends;$(SolutionDir)extern\glad;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)extern;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,8 +147,14 @@
     <ClCompile Include="..\extern\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\extern\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\extern\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Basic Shader Manager\cShader.cpp" />
+    <ClCompile Include="Basic Shader Manager\cShaderManager.cpp" />
+    <ClCompile Include="cLightManager.cpp" />
     <ClCompile Include="cMediaPlayer.cpp" />
+    <ClCompile Include="cMesh.cpp" />
+    <ClCompile Include="cVAOManager\cVAOManager.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="LoadModels.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="cSoundManager.cpp" />
     <ClCompile Include="SoundUtils.cpp" />
@@ -163,8 +169,13 @@
     <ClInclude Include="..\extern\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\extern\imgui\imstb_textedit.h" />
     <ClInclude Include="..\extern\imgui\imstb_truetype.h" />
+    <ClInclude Include="Basic Shader Manager\cShaderManager.h" />
+    <ClInclude Include="cLightManager.h" />
     <ClInclude Include="cMediaPlayer.h" />
+    <ClInclude Include="cMesh.h" />
     <ClInclude Include="cSoundManager.h" />
+    <ClInclude Include="cVAOManager\cVAOManager.h" />
+    <ClInclude Include="OpenGLCommon.h" />
     <ClInclude Include="SoundUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
