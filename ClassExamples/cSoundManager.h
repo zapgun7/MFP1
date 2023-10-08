@@ -18,8 +18,8 @@ public:
 	// Destructor (Gets called on delete)
 	~cSoundManager();
 
-	bool Initialize(std::string loadFile);
-	void Destroy();
+	bool Initialize(std::string loadFile); // Initializes FMOD::system and loads audio onto a private map
+	void Destroy(); // Properly destroys all FMOD variables
 
 	/*void PlaySound(FMOD::Sound* sound);*/
 	FMOD::Channel* PlaySound(std::string friendlyName);

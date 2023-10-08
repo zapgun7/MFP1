@@ -8,7 +8,7 @@
 class cMediaPlayer
 {
 public:
-	cMediaPlayer(cSoundManager* soundMan);
+	cMediaPlayer(cSoundManager* soundMan); // Initializes provate variables
 	~cMediaPlayer();
 	bool startProgram(); // Starts the GUI; main loop is located in here
 

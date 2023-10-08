@@ -44,15 +44,18 @@ bool LoadModels(void);
 void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModel, GLuint shaderProgramID, double deltaTime ,float rotatePower);
 //////////////////////////////////////////////////////////////
 // GRAPHICS SETUP
+//////////////////////////////////////////////////////////////
+
+// Simple vec3's to maintain the POV in the window
 glm::vec3 g_cameraEye = glm::vec3(0.0, 0.0, 20.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 
 
 
-cVAOManager* g_pMeshManager = NULL;
-std::vector< cMesh* > g_vec_pMeshesToDraw;
-cLightManager* g_pTheLights = NULL;
+cVAOManager* g_pMeshManager = NULL; // Manages the info from the 3D object files, taking care of populating the vertex and index arrays
+std::vector< cMesh* > g_vec_pMeshesToDraw; // Manages drawing info about each object (position, orientation, scale)
+cLightManager* g_pTheLights = NULL; // Manages info on the 3 spotlights used in the scene
 /////////////////////
 
 
@@ -123,28 +126,34 @@ bool cMediaPlayer::startProgram()
 	// ///////////////////// GRAPHICS STUFF/////////////////////////////////////////////////////////
 	// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	// Create the shader manager: takes care of loading from the shader files
+	// Also handles creating the shader programs to use in the scene
 	cShaderManager* pShaderThing = new cShaderManager();
 	pShaderThing->setBasePath("assets/shaders");
 
+	// Create variable representing vertex shader, and give it info on its file location
 	cShaderManager::cShader vertexShader;
 	vertexShader.fileName = "vertexShader01.glsl";
 
+	// Same as above but fragment shader
 	cShaderManager::cShader fragmentShader;
 	fragmentShader.fileName = "fragmentShader01.glsl";
 
+	// Create the shader program from the two shader variables we just created
 	if (!pShaderThing->createProgramFromFile("shader01", vertexShader, fragmentShader))
 	{
 		std::cout << "Error: Couldn't compile or link:" << std::endl;
 		std::cout << pShaderThing->getLastError();
 		return -1;
 	}
+	// Get unique shader identifier to use the program
 	GLuint shaderProgramID = pShaderThing->getIDFromFriendlyName("shader01");
 
+	// Initialize the class that handles the raw info on the models; point it to the models file path
 	::g_pMeshManager = new cVAOManager();
-
 	::g_pMeshManager->setBasePath("assets/models");
 
-
+	// Load in the only object we'll use for the scene
 	sModelDrawInfo polyDrawingInfo;
 	::g_pMeshManager->LoadModelIntoVAO("somepoly.ply",
 		polyDrawingInfo, shaderProgramID);
@@ -152,10 +161,11 @@ bool cMediaPlayer::startProgram()
 
 
 
-	// 
+	// Create our "drawable" objects; will have a friendly name that matches the object loaded just above to reerence the proper set of vertices
+	// This initializes all of the draw info of our to-be-rendered objects: scale, position, orientation, etc.
 	LoadModels();
 
-
+	// Initialize our light manager and explicitly set the parameters for each one
 	::g_pTheLights = new cLightManager();
 	// 
 	::g_pTheLights->SetUniformLocations(shaderProgramID);
@@ -165,9 +175,6 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[0].param1.y = 1.0f;
 	::g_pTheLights->theLights[0].param1.z = 120.0f;
 
-	::g_pTheLights->theLights[0].position.x = 8.0f;
-	::g_pTheLights->theLights[0].position.y = 5.0f;
-	::g_pTheLights->theLights[0].position.z = 5.0f;
 	::g_pTheLights->theLights[0].direction.w = 1.0f; // Light power
 
 	::g_pTheLights->theLights[0].diffuse.x = 0.01f;
@@ -187,9 +194,7 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[1].param1.y = 1.0f;
 	::g_pTheLights->theLights[1].param1.z = 20.0f;
 
-	::g_pTheLights->theLights[1].position.x = -8.0f;
-	::g_pTheLights->theLights[1].position.y = 5.0f;
-	::g_pTheLights->theLights[1].position.z = 0.0f;
+
 	::g_pTheLights->theLights[1].direction.w = 1.0f; // Light power
 
 	::g_pTheLights->theLights[1].diffuse.x = 0.01f;
@@ -208,25 +213,20 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[2].param1.y = 1.0f;
 	::g_pTheLights->theLights[2].param1.z = 20.0f;
 
-	::g_pTheLights->theLights[2].position.x = -8.0f;
-	::g_pTheLights->theLights[2].position.y = 5.0f;
-	::g_pTheLights->theLights[2].position.z = 0.0f;
+
 	::g_pTheLights->theLights[2].direction.w = 1.0f; // Light power
 
 	::g_pTheLights->theLights[2].diffuse.x = 0.005f;
 	::g_pTheLights->theLights[2].diffuse.y = 1.5f;
 	::g_pTheLights->theLights[2].diffuse.z = 1.0f;
-	::g_pTheLights->theLights[2].specular.x = 1.0f;
-	::g_pTheLights->theLights[2].specular.y = 0.0f;
+	::g_pTheLights->theLights[2].specular.x = 0.0f;
+	::g_pTheLights->theLights[2].specular.y = 1.0f;
 	::g_pTheLights->theLights[2].specular.z = 1.0f;
 
 	::g_pTheLights->theLights[2].atten.x = 0.0f;        // Constant attenuation
 	::g_pTheLights->theLights[2].atten.y = 0.05f;        // Linear attenuation
 	::g_pTheLights->theLights[2].atten.z = 0.9f;        // Quadratic attenuation
 
-
-	//    glm::vec3 cameraEye = glm::vec3(10.0, 5.0, -15.0f);
-	float yaxisRotation = 0.0f;
 
 	double lastTime = glfwGetTime();
 	
@@ -249,9 +249,7 @@ bool cMediaPlayer::startProgram()
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
 	// Our state
-	bool show_demo_window = false;
 	bool show_credits_window = false;
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	// Main loop
 	while (!glfwWindowShouldClose(window))
@@ -271,20 +269,8 @@ bool cMediaPlayer::startProgram()
 
 
 
-		// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-		if (show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
-
-
-
-
-
-
-		// 2. The main window we control our audio from
+		// The main window we control our audio from
 		{
-			//static float f = 0.0f;
-			//static int counter = 0;
-
 			ImGui::Begin("Audio Player");                          // Create a window called "Hello, world!" and append into it.
 
 			ImGui::Text("Currently Playing: %s", currAud.c_str());               // Display some text (you can use a format strings too)
@@ -309,10 +295,11 @@ bool cMediaPlayer::startProgram()
 			ImGui::Text("\n\nAudio To Play:");
 			for (unsigned int i = 0; i < 2; i++)
 			{
-				if (ImGui::Button(friendlyNames[i * 5].c_str()))
+				if (ImGui::Button(friendlyNames[i * 5].c_str())) // First audio button of a row (different than below because it doesn't have ImGui::SameLine()
 				{
 					m_Channel = soundMangr->PlaySound(friendlyNames[i * 5]); // Play sound
 					currAud = friendlyNames[i * 5]; // Update text displaying currently playing audio
+					isPaused = false; // Instantly play sound when its button is pressed
 					soundMangr->setPausePlay(isPaused); // Immediately set the pause/play state, so you can start audio paused
 				}
 				for (unsigned int e = 0; e < 4; e++)
@@ -322,6 +309,7 @@ bool cMediaPlayer::startProgram()
 					{
 						m_Channel = soundMangr->PlaySound(friendlyNames[i * 5 + e + 1]);
 						currAud = friendlyNames[i * 5 + e + 1];
+						isPaused = false;
 						soundMangr->setPausePlay(isPaused);
 					}
 				}
@@ -357,33 +345,20 @@ bool cMediaPlayer::startProgram()
 				glfwSetWindowShouldClose(window, 1);
 
 
-
-			// 			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-			// 			ImGui::Checkbox("Another Window", &show_another_window);
-			// 
-			// 			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			// 			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-			// 
-			// 			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-			// 				counter++;
-			// 			ImGui::SameLine();
-			// 			ImGui::Text("counter = %d", counter);
-			// 
-			// 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
 		}
 
 
 
 
-		// 3. The credits window. We can open this from the main window created above
+		// The credits window. We can open this from the main window created above
 		if (show_credits_window)
 		{
 			ImGui::Begin("Audio Credits", &show_credits_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 			for (int i = 0; i < credits.size()/2; i++)
 			{
-				ImGui::Text(credits[i * 2].c_str());
-				ImGui::Text("   %s",credits[i * 2 + 1].c_str());
+				ImGui::Text(credits[i * 2].c_str()); // Name of the audio
+				ImGui::Text("   %s",credits[i * 2 + 1].c_str()); // Credits of the audio
 				ImGui::Separator();
 			}
 			if (ImGui::Button("Close"))
@@ -391,31 +366,23 @@ bool cMediaPlayer::startProgram()
 			ImGui::End();
 		}
 
-
-		std::cout << rotatePower << std::endl;
-
-
-
-		// Rendering
 		ImGui::Render();
-// 		int display_w, display_h;
-// 		glfwGetFramebufferSize(window, &display_w, &display_h);
-// 		glViewport(0, 0, display_w, display_h);
-// 		glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-// 		glClear(GL_COLOR_BUFFER_BIT);
+
+
 		// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// ////////////////////////GRAPHICS STUFF//////////////////////////////////////////////////////////////////////
 		// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 		float ratio;
 		int width, height;
 
+		// Set the shader program we're using
 		glUseProgram(shaderProgramID);
 
 		glfwGetFramebufferSize(window, &width, &height);
 		ratio = width / (float)height;
 
 		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear screen before drawing
 
 		// While drawing a pixel, see if the pixel that's already there is closer or not?
 		glEnable(GL_DEPTH_TEST);
@@ -423,16 +390,11 @@ bool cMediaPlayer::startProgram()
 		glCullFace(GL_BACK);
 		
 
-		::g_pTheLights->UpdateUniformValues(shaderProgramID);
-
-		//uniform vec4 eyeLocation;
+		// Setting uniform variables for eye location and perspective matrices ///////////////////////////
 		GLint eyeLocation_UL = glGetUniformLocation(shaderProgramID, "eyeLocation");
 		glUniform4f(eyeLocation_UL,
 			::g_cameraEye.x, ::g_cameraEye.y, ::g_cameraEye.z, 1.0f);
 
-
-
-		//       //mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
 		glm::mat4 matProjection = glm::perspective(0.6f,
 			ratio,
 			0.1f,
@@ -447,18 +409,23 @@ bool cMediaPlayer::startProgram()
 
 		GLint matView_UL = glGetUniformLocation(shaderProgramID, "matView");
 		glUniformMatrix4fv(matView_UL, 1, GL_FALSE, glm::value_ptr(matView));
+		// ////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 		// Time per frame (more or less)
 		double currentTime = glfwGetTime();
 		double deltaTime = currentTime - lastTime;
-		//        std::cout << deltaTime << std::endl;
 		lastTime = currentTime;
 
 
-		// *********************************************************************
-		// Draw all the objects
-		updateScene(soundMangr->getIsPlaying(), isPaused);
+		// Updates most things in the scene that change
+		updateScene(soundMangr->getIsPlaying(), isPaused); 
+
+		// Update the uniform values of our lights (effectively just for changing position, direction, and power)
 		::g_pTheLights->UpdateUniformValues(shaderProgramID);
+
+		// Draw all objects in the scene (just poly and poly mesh)
 		for (unsigned int index = 0; index != ::g_vec_pMeshesToDraw.size(); index++)
 		{
 			cMesh* pCurrentMesh = ::g_vec_pMeshesToDraw[index];
@@ -469,24 +436,21 @@ bool cMediaPlayer::startProgram()
 				glm::mat4 matModel = glm::mat4(1.0f);   // Identity matrix
 
 				DrawObject(pCurrentMesh, matModel, shaderProgramID, deltaTime, rotatePower);
-			}//if (pCurrentMesh->bIsVisible)
+			}
 
 		}
-		// *********************************************************************
 
-
-
-
-
-		//glfwSwapBuffers(window);
 		glfwPollEvents();
 		// //////////////////////////////////////////////////////////////////////////////////////
 		// //////////////////////////////////////////////////////////////////////////////////////
+
+
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		soundMangr->Update(volume, pitch, pan, isLooping); // gotta call it, important or something?
 		glfwSwapBuffers(window);
-	}
+
+	} // while (!glfwWindowShouldClose(window))
 
 	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
@@ -495,7 +459,7 @@ bool cMediaPlayer::startProgram()
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
-	//soundMangr->Destroy(); destroys it in the main?
+	//soundMangr->Destroy(); destroys it in the main
 
 
 
@@ -506,6 +470,8 @@ bool cMediaPlayer::startProgram()
 
 
 // GRAPHICS FUNCITONS /////////////////////////////
+
+// Iterates through the mesh map to return the draw info; uses a friendlyname
 cMesh* g_pFindMeshByFriendlyName(std::string friendlyNameToFind)
 {
 	for (unsigned int index = 0; index != ::g_vec_pMeshesToDraw.size(); index++)
@@ -519,14 +485,14 @@ cMesh* g_pFindMeshByFriendlyName(std::string friendlyNameToFind)
 	// Didn't find it
 	return NULL;
 }
+
+// Draws the object passed with pCurrentMesh and the passed shader program; deltaTime and rotatePower are for rotational speed of the poly
 void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProgramID, double deltaTime, float rotatePower)
 {
-
-	//         mat4x4_identity(m);
 	glm::mat4 matModel = matModelParent;
 
-
-	pCurrentMesh->drawPosition.y = sin(glfwGetTime()); // constant bob
+	// Gives the poly a constant up/down smooth bob
+	pCurrentMesh->drawPosition.y = sin(glfwGetTime()); 
 
 
 	// Translation
@@ -535,13 +501,13 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 			pCurrentMesh->drawPosition.y ,
 			pCurrentMesh->drawPosition.z));
 
-
 	// Rotation matrix generation
 	glm::mat4 matRotateX = glm::rotate(glm::mat4(1.0f),
 		pCurrentMesh->orientation.x, // (float)glfwGetTime(),
 		glm::vec3(1.0f, 0.0, 0.0f));
 
-	pCurrentMesh->orientation.y += deltaTime/(3 - 3*(rotatePower/11)); // not constant >:(
+	// Add to the y-rotation of the poly based off of passsed variables
+	pCurrentMesh->orientation.y += deltaTime/(3 - 3*(rotatePower/11)); 
 
 	glm::mat4 matRotateY = glm::rotate(glm::mat4(1.0f),
 		pCurrentMesh->orientation.y, // (float)glfwGetTime(),
@@ -550,6 +516,7 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 	glm::mat4 matRotateZ = glm::rotate(glm::mat4(1.0f),
 		pCurrentMesh->orientation.z, // (float)glfwGetTime(),
 		glm::vec3(0.0f, 0.0, 1.0f));
+
 
 	// Scaling matrix
 	glm::mat4 matScale = glm::scale(glm::mat4(1.0f),
@@ -567,19 +534,8 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 
 	matModel = matModel * matScale;
 
-	//        m = m * rotateZ;
-	//        m = m * rotateY;
-	//        m = m * rotateZ;
 
-
-
-	   //mat4x4_mul(mvp, p, m);
-	//    glm::mat4 mvp = matProjection * matView * matModel;
-
-	//    GLint mvp_location = glGetUniformLocation(shaderProgramID, "MVP");
-	//    //glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
-	//    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, glm::value_ptr(mvp));
-
+	//////////// Update Matrix uniform values in the vertex shader //////////////
 	GLint matModel_UL = glGetUniformLocation(shaderProgramID, "matModel");
 	glUniformMatrix4fv(matModel_UL, 1, GL_FALSE, glm::value_ptr(matModel));
 
@@ -590,29 +546,27 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 	// uniform mat4 matModel_IT;
 	GLint matModel_IT_UL = glGetUniformLocation(shaderProgramID, "matModel_IT");
 	glUniformMatrix4fv(matModel_IT_UL, 1, GL_FALSE, glm::value_ptr(matModel_InverseTranspose));
+	// /////////////////////////////////////////////////////////////////////////
+
 
 	glm::vec4 trucol;
-	if (pCurrentMesh->bIsWireframe)
+	if (pCurrentMesh->bIsWireframe) // if is the wireframe poly
 	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glLineWidth(5);
-		trucol = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe mode
+		glLineWidth(5); // Thicker line looks nice
+		trucol = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); // Set color to almost black; keep values at some non-zero to be influenced by light
 	}
-	else
+	else // If the full poly object
 	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		trucol = glm::vec4(255.0f, 1.0f, 1.0f, 1.0f);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Fill mode
+		trucol = glm::vec4(255.0f, 1.0f, 1.0f, 1.0f); // Effectively set color to red; keep other values non-zero to be influenced by blue/green light
 	}
 
-	// uniform mat4 matModel_IT;
+	// Pass in hard-set color to vertex shader
 	GLint trueColor_UL = glGetUniformLocation(shaderProgramID, "trueColor");
 	glUniform4f(trueColor_UL,
 		trucol.x, trucol.y, trucol.z, 1.0f);
 
-	//        glPointSize(10.0f);
-
-
-			// uniform bool bDoNotLight;
 	GLint bDoNotLight_UL = glGetUniformLocation(shaderProgramID, "bDoNotLight");
 
 	if (pCurrentMesh->bDoNotLight)
@@ -626,7 +580,7 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 		glUniform1f(bDoNotLight_UL, (GLfloat)GL_FALSE);
 	}
 
-	//uniform bool bUseDebugColour;	
+	//Setting debug colors
 	GLint bUseDebugColour_UL = glGetUniformLocation(shaderProgramID, "bUseDebugColour");
 	if (pCurrentMesh->bUseDebugColours)
 	{
@@ -645,7 +599,7 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 	}
 
 
-
+	// Create a variable capable of storing the objects' draw info and pass it into the following function to load it with the info
 	sModelDrawInfo modelInfo;
 	if (::g_pMeshManager->FindDrawInfoByModelName(pCurrentMesh->meshName, modelInfo))
 	{
@@ -662,11 +616,17 @@ void DrawObject(cMesh* pCurrentMesh, glm::mat4 matModelParent, GLuint shaderProg
 
 	return;
 }
+
+
+// Changes all the values to "animate" the scene
+// Changes spotlight positions, updates their direction to point to the poly
+// Adjusts the poly rotate speed and the lights' power based on the pause/play state of the audio
 void cMediaPlayer::updateScene(bool isPlaying, bool isPaused)
 {
 	float rotateRampSpeed = 0.03f; // Might want to look into easing functions
 	float lightRampSpeed = 0.03f;
 
+	///////////// If/else to handle rotation speed and light power////////////
 	if (isPlaying && !isPaused) // If audio is currently playing
 	{
 		if (rotatePower < 10) // Ramp up rotational speed
@@ -691,10 +651,13 @@ void cMediaPlayer::updateScene(bool isPlaying, bool isPaused)
 			}
 		}
 	}
+	/////////////////////////////////////////////////////////////////////
 
-	int rotateSpeed = 2;
-	int amplitude = 8;
 
+	int rotateSpeed = 2; // Hard set value to control speed of lights
+	int amplitude = 8; // Distance of lights away from poly roughly
+
+	// Nested sin/cos/tan creates distinct paths for the lights to travel on
 	::g_pTheLights->theLights[0].position.x = amplitude * sin(sin(3 * sin(glfwGetTime() / rotateSpeed)));
 	::g_pTheLights->theLights[0].position.z = amplitude * sin(sin(3 * sin(glfwGetTime() / rotateSpeed + 1.57f)));
 	::g_pTheLights->theLights[0].position.y = amplitude * sin(2 * cos(4 * sin(glfwGetTime() / (rotateSpeed * 5))));
@@ -708,6 +671,8 @@ void cMediaPlayer::updateScene(bool isPlaying, bool isPaused)
 	::g_pTheLights->theLights[2].position.y = -amplitude * tan(0.7 * tan(cos(glfwGetTime() / (rotateSpeed * 5))));
 
 
+
+	// Point all the lights to look at the poly
 	glm::vec3 polypos = glm::vec3(::g_vec_pMeshesToDraw[0]->drawPosition.x, ::g_vec_pMeshesToDraw[0]->drawPosition.y, ::g_vec_pMeshesToDraw[0]->drawPosition.z);
 	::g_pTheLights->theLights[0].direction.x = polypos.x - ::g_pTheLights->theLights[0].position.x;
 	::g_pTheLights->theLights[0].direction.y = polypos.y - ::g_pTheLights->theLights[0].position.y; 

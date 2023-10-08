@@ -14,6 +14,9 @@ cSoundManager::~cSoundManager()
 	// Typically just for notifying things that this is being destroyed.
 }
 
+
+// Creates and initializes the FMOD::System variable; sets private pan variable, since there's no getPan channel function
+// Calls loadSoundsFromFile, which loads all audio specified in a text file into a map
 bool cSoundManager::Initialize(std::string loadFile)
 {
 	if (m_Initialized)
@@ -40,7 +43,6 @@ bool cSoundManager::Initialize(std::string loadFile)
 		return false;
 	}
 
-	m_Channel->setMode(FMOD_LOOP_NORMAL);
 
 	// Load sound files into map
 	if (!(loadSoundsFromFile(loadFile))) 
@@ -64,12 +66,9 @@ void cSoundManager::Destroy()
 	while(it != m_map_friendlyName_to_sound.end()) // Iterates through the map to release all the sounds
 	{
 		it->second->release(); // Release sound
-		//delete(it->second); // Delete pointer         // Causing an ungraceful program end     so it's created on the stack, probably bad for storing audio, eh?
+		//delete(it->second); // Delete pointer         // Causing an ungraceful program termination (when closing window)
 		it++;
 	}
-
-// 	result = m_Sound->release();    // Don't need to release this pointer as it is taken care of in the while loop above :)
-// 	FMODCheckError(result);
 
 	result = m_System->close();
 	FMODCheckError(result);
@@ -102,6 +101,10 @@ FMOD::Channel* cSoundManager::PlaySound(std::string friendlyName) // For calling
 	return PlaySound(FindSoundBySoundName(friendlyName));
 }
 
+
+// Update is called every frame from the main program loop in cMediaPlayer
+// Updates all settings managed by cMediaPlayer
+// Also calls the important FMOD::System->update()
 void cSoundManager::Update(float vol, float pit, float pan, bool isLooping)
 {
 	if (!m_Initialized)
@@ -221,17 +224,20 @@ bool cSoundManager::getIsPlaying()
 	return temp;
 }
 
+// Returns stored string vector of audio friendlynames for cMediaPlayer to use
 std::vector<std::string> cSoundManager::getFriendlyNames()
 {
 	return friendlyNames;
 }
 
-
+// Returns stored string vector of audio credits for cMediaPlayer to use
 std::vector<std::string> cSoundManager::getCredits()
 {
 	return credits;
 }
 
+
+// Queries the sound map with the given friendlyname, returning the relevant sound pointer
 FMOD::Sound* cSoundManager::FindSoundBySoundName(std::string soundName)
 {
 	std::map< std::string, FMOD::Sound*>::iterator itSound = m_map_friendlyName_to_sound.find(soundName);
@@ -247,12 +253,12 @@ FMOD::Sound* cSoundManager::FindSoundBySoundName(std::string soundName)
 	return itSound->second;
 }
 
+
+// Loads all audio specified by the given text file; text file specifiies whether it is stream or sample (bigger files will be stream)
+// All audio is loaded into a map to be easily retrieved later
+// This function also loads a string vector of the friendlynames and the credits
 bool cSoundManager::loadSoundsFromFile(std::string filename)
 {
-	// Loads sounds from file
-	// File should specify friendlyname to use with each sound and whether to use sample or stream
-	// File "header" will specify how many sounds there are to load, each line thereafter will specify path and file time: ex - audio/stream/xx.wav
-
 	std::ifstream theAudioFile(filename.c_str());
 	if (!theAudioFile.is_open())
 	{
@@ -295,7 +301,7 @@ bool cSoundManager::loadSoundsFromFile(std::string filename)
 			result = m_System->createSound(filePath.c_str(), FMOD_CREATESAMPLE, 0, &m_Sound);
 			if (result != FMOD_OK)
 			{
-				printf("Failed to load the sound file: %s\n", filePath);
+				printf("Failed to load the sound file: %s\n", filePath.c_str());
 			}
 		}
 		else // if == 1     stream value
@@ -303,7 +309,7 @@ bool cSoundManager::loadSoundsFromFile(std::string filename)
 			result = m_System->createSound(filePath.c_str(), FMOD_CREATESTREAM, 0, &m_Sound);
 			if (result != FMOD_OK)
 			{
-				printf("Failed to load the sound file: %s\n",filePath);
+				printf("Failed to load the sound file: %s\n",filePath.c_str());
 			}
 		}
 		m_map_friendlyName_to_sound[friendlyName] = m_Sound; // Store friendlyname and related FMod Sound pointer in map

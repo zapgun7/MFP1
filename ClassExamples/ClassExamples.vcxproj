@@ -116,7 +116,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)extern/fmod/lib;$(SolutionDir)extern/GLFW/lib/$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)extern/fmod/lib;$(SolutionDir)extern/GLFW/lib/db</AdditionalLibraryDirectories>
       <AdditionalDependencies>fmod_vc.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -135,7 +135,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)extern/fmod/lib;$(SolutionDir)extern/GLFW/lib/$(Configuration)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)extern/fmod/lib;$(SolutionDir)extern/GLFW/lib/rl</AdditionalLibraryDirectories>
       <AdditionalDependencies>fmod_vc.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
