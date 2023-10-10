@@ -271,18 +271,25 @@ bool cMediaPlayer::startProgram()
 		std::vector<int> audProgLen;
 		// The main window we control our audio from
 		{
-			ImGui::Begin("Audio Player");                          // Create a window called "Hello, world!" and append into it.
+			ImGui::Begin("Audio Player");                         
 
-			ImGui::Text("Currently Playing: %s", currAud.c_str());               // Display some text (you can use a format strings too)
+			ImGui::Text("Currently Playing: %s", currAud.c_str());               
 			ImGui::Separator();
 
-			audProgLen = soundMangr->getAudioProgress();
-			if (audProgLen[0] == 0.0f)
-				ImGui::ProgressBar(0.0f, ImVec2(ImGui::GetWindowWidth() - 100, 0));
+			audProgLen = soundMangr->getAudioProgress();        // audProgLen[0] = Total audio length in ms     audProgLen[1] = Current position in audio in ms
+			if (audProgLen[0] == 0)
+			{
+				ImGui::ProgressBar(0.0f, ImVec2(ImGui::GetWindowWidth() - 100, 0));        // Have progress bar end 100px from edge of screen; allows space for timestamp
+			}
 			else
-				ImGui::ProgressBar(audProgLen[1]/audProgLen[0], ImVec2(ImGui::GetWindowWidth() - 100,0));
+			{
+				ImGui::ProgressBar((float)audProgLen[1] / audProgLen[0], ImVec2(ImGui::GetWindowWidth() - 100, 0));
+			}
 			ImGui::SameLine();
-			ImGui::Text("%02d:%02d/%02d:%02d", audProgLen[1] / 60000, audProgLen[1] % 60000 / 1000,audProgLen[0]/60000,audProgLen[0]%60000/1000);
+			ImGui::Text("%02d:%02d/%02d:%02d", audProgLen[1] / 60000,           // Divide by minutes in ms to get minutes (rounded down)
+											   audProgLen[1] % 60000 / 1000,    // mod by minute value to get remainder seconds in ms; then divide by 1000ms (1s) to get number of seconds (rounded down)
+											   audProgLen[0] / 60000,
+											   audProgLen[0] % 60000 / 1000);
 
 			if (isPaused)
 			{
@@ -355,8 +362,6 @@ bool cMediaPlayer::startProgram()
 
 			ImGui::End();
 		}
-
-
 
 
 		// The credits window. We can open this from the main window created above
