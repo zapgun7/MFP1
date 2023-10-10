@@ -276,6 +276,9 @@ bool cMediaPlayer::startProgram()
 			ImGui::Text("Currently Playing: %s", currAud.c_str());               // Display some text (you can use a format strings too)
 			ImGui::Separator();
 
+			ImGui::ProgressBar(soundMangr->getAudioProgress());
+			std::cout << soundMangr->getAudioProgress() << std::endl;
+
 			if (isPaused)
 			{
 				if (ImGui::Button("Play "))
