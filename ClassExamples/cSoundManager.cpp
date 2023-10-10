@@ -224,17 +224,24 @@ bool cSoundManager::getIsPlaying()
 	return temp;
 }
 
-float cSoundManager::getAudioProgress()
+std::vector<int> cSoundManager::getAudioProgress()
 {
+	std::vector<int> retVec;
 	unsigned int audPos;
 	unsigned int audLen;
+	FMOD::Sound *temp;
 	m_Channel->getPosition(&audPos, FMOD_TIMEUNIT_MS); // get position in ms
-	m_Sound->getLength(&audLen, FMOD_TIMEUNIT_MS);
+	m_Channel->getCurrentSound(&temp);
+	temp->getLength(&audLen, FMOD_TIMEUNIT_MS);
 	if (audPos == NULL)
-		return 0.0f;
-	std::cout << "\nPos: " << audPos << std::endl;
-	std::cout << "Len: " << audLen << "\n" << std::endl;
-	return (float)audPos / audLen;
+	{
+		retVec.push_back(0.0f);
+		retVec.push_back(0.0f);
+		return retVec;
+	}
+	retVec.push_back(audLen);
+	retVec.push_back(audPos);
+	return retVec;
 }
 
 // Returns stored string vector of audio friendlynames for cMediaPlayer to use
