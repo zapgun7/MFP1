@@ -32,6 +32,7 @@ public:
 	void setPan(float newPan);
 	void setLoop(int loopState);
 	void setPausePlay(bool isPaused);
+	void setStop();
 
 	// Getters
 	float getPitch();
@@ -39,6 +40,7 @@ public:
 	float getPan();
 	int getLoop();
 	bool getIsPlaying(); // Returns if channel is actively playing something
+	bool getIsChannelActive(); // Returns if a channel is  active (paused or playing)
 	std::vector<int> getAudioProgress();
 
 	std::vector<std::string> getFriendlyNames();

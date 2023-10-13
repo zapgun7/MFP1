@@ -266,6 +266,8 @@ bool cMediaPlayer::startProgram()
 
 
 		std::vector<int> audProgLen;
+		if (!soundMangr->getIsChannelActive()) // Remove text from currently playing after sound is done playing
+			currAud = "";
 		// The main window we control our audio from
 		{
 			ImGui::Begin("Audio Player");                         
@@ -290,7 +292,7 @@ bool cMediaPlayer::startProgram()
 
 			if (isPaused)
 			{
-				if (ImGui::Button("Play "))
+				if (ImGui::Button(" Play  "))
 				{
 					isPaused = false;
 					soundMangr->setPausePlay(isPaused);
@@ -298,12 +300,23 @@ bool cMediaPlayer::startProgram()
 			}
 			else
 			{
-				if (ImGui::Button("Pause"))
+				if (ImGui::Button(" Pause "))
 				{
 					isPaused = true;
 					soundMangr->setPausePlay(isPaused);
 				}
 			}
+			ImGui::SameLine();
+			ImGui::Text("   ");
+			ImGui::SameLine();
+			if (ImGui::Button(" Stop  "))
+			{
+				isPaused = true;
+				soundMangr->setStop();
+				currAud = "";
+			}
+
+
 			ImGui::Text("\n\nAudio To Play:");
 			for (unsigned int i = 0; i < 2; i++)
 			{

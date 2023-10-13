@@ -1,5 +1,6 @@
 # MFP1
 A repository for my first project in the Media Fundamentals class
+Watch the demo here (sans stop button): https://www.youtube.com/watch?v=81r0ClfWX5Q
 
 
 ## Design Choices:

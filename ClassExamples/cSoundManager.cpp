@@ -214,6 +214,12 @@ void cSoundManager::setPausePlay(bool isPaused)
 	return;
 }
 
+// Stops the current audio
+void cSoundManager::setStop()
+{
+	m_Channel->stop();
+}
+
 // Returns pitch of the channel, returns 0.0f if channel is not in use
 float cSoundManager::getPitch()
 {
@@ -278,6 +284,17 @@ bool cSoundManager::getIsPlaying()
 	return temp;
 }
 
+
+bool cSoundManager::getIsChannelActive()
+{
+	bool isChannelLoaded = true;
+	bool throwaway = false;
+
+	if (m_Channel->getMute(&throwaway) == FMOD_ERR_INVALID_HANDLE)
+		isChannelLoaded = false;
+
+	return isChannelLoaded;
+}
 
 // Returns a vector with the first index containing       vector[0] = current audio length in ms
 std::vector<int> cSoundManager::getAudioProgress()//      vector[1] = current position in audio in ms
