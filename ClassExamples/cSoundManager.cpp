@@ -54,6 +54,7 @@ bool cSoundManager::Initialize(std::string loadFile)
 	return true;
 }
 
+// Cleans up project by releasing and closing all variables that should
 void cSoundManager::Destroy()
 {
 	if (!m_Initialized)
@@ -224,7 +225,9 @@ bool cSoundManager::getIsPlaying()
 	return temp;
 }
 
-std::vector<int> cSoundManager::getAudioProgress()
+
+// Returns a vector with the first index containing       vector[0] = current audio length in ms
+std::vector<int> cSoundManager::getAudioProgress()//      vector[1] = current position in audio in ms
 {
 	std::vector<int> retVec;
 	unsigned int audPos;
@@ -276,7 +279,7 @@ FMOD::Sound* cSoundManager::FindSoundBySoundName(std::string soundName)
 
 // Loads all audio specified by the given text file; text file specifiies whether it is stream or sample (bigger files will be stream)
 // All audio is loaded into a map to be easily retrieved later
-// This function also loads a string vector of the friendlynames and the credits
+// This function also loads a string vector of the friendlynames and the credits, the credits also being read from a file
 bool cSoundManager::loadSoundsFromFile(std::string filename)
 {
 	std::ifstream theAudioFile(filename.c_str());

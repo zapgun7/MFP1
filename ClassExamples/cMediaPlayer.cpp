@@ -165,11 +165,13 @@ bool cMediaPlayer::startProgram()
 	// This initializes all of the draw info of our to-be-rendered objects: scale, position, orientation, etc.
 	LoadModels();
 
+
+
 	// Initialize our light manager and explicitly set the parameters for each one
 	::g_pTheLights = new cLightManager();
 	// 
 	::g_pTheLights->SetUniformLocations(shaderProgramID);
-
+	//------------------------SPOTLIGHT 1------------------------//
 	::g_pTheLights->theLights[0].param2.x = 1.0f;   // Turn on
 	::g_pTheLights->theLights[0].param1.x = 1.0f;   // 0 = point light
 	::g_pTheLights->theLights[0].param1.y = 1.0f;
@@ -178,7 +180,7 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[0].direction.w = 1.0f; // Light power
 
 	::g_pTheLights->theLights[0].diffuse.x = 0.01f;
-	::g_pTheLights->theLights[0].diffuse.y = 0.0f;
+	::g_pTheLights->theLights[0].diffuse.y = 0.0f;     // Red light (don't need big value since the poly is already red)
 	::g_pTheLights->theLights[0].diffuse.z = 0.0f;
 	::g_pTheLights->theLights[0].specular.x = 1.0f;
 	::g_pTheLights->theLights[0].specular.y = 1.0f;
@@ -188,7 +190,7 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[0].atten.y = 0.05f;        // Linear attenuation
 	::g_pTheLights->theLights[0].atten.z = 0.9f;        // Quadratic attenuation
 
-
+	//------------------------SPOTLIGHT 2------------------------//
 	::g_pTheLights->theLights[1].param2.x = 1.0f;   // Turn on
 	::g_pTheLights->theLights[1].param1.x = 1.0f;   // 0 = point light
 	::g_pTheLights->theLights[1].param1.y = 1.0f;
@@ -198,7 +200,7 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[1].direction.w = 1.0f; // Light power
 
 	::g_pTheLights->theLights[1].diffuse.x = 0.01f;
-	::g_pTheLights->theLights[1].diffuse.y = 0.0f;
+	::g_pTheLights->theLights[1].diffuse.y = 0.0f;   // Bring more blue through
 	::g_pTheLights->theLights[1].diffuse.z = 3.0f;
 	::g_pTheLights->theLights[1].specular.x = 1.0f;
 	::g_pTheLights->theLights[1].specular.y = 0.0f;
@@ -208,6 +210,8 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[1].atten.y = 0.05f;        // Linear attenuation
 	::g_pTheLights->theLights[1].atten.z = 0.9f;        // Quadratic attenuation
 
+
+	//------------------------SPOTLIGHT 3------------------------//
 	::g_pTheLights->theLights[2].param2.x = 1.0f;   // Turn on
 	::g_pTheLights->theLights[2].param1.x = 1.0f;   // 0 = point light
 	::g_pTheLights->theLights[2].param1.y = 1.0f;
@@ -217,7 +221,7 @@ bool cMediaPlayer::startProgram()
 	::g_pTheLights->theLights[2].direction.w = 1.0f; // Light power
 
 	::g_pTheLights->theLights[2].diffuse.x = 0.005f;
-	::g_pTheLights->theLights[2].diffuse.y = 1.5f;
+	::g_pTheLights->theLights[2].diffuse.y = 1.5f;   // Bring more green and blue through
 	::g_pTheLights->theLights[2].diffuse.z = 1.0f;
 	::g_pTheLights->theLights[2].specular.x = 0.0f;
 	::g_pTheLights->theLights[2].specular.y = 1.0f;
@@ -254,13 +258,6 @@ bool cMediaPlayer::startProgram()
 	// Main loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// Poll and handle events (inputs, window resize, etc.)
-		// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-		// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-		// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-		// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-		//glfwPollEvents();
-
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -383,7 +380,7 @@ bool cMediaPlayer::startProgram()
 
 
 		// /////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// ////////////////////////GRAPHICS STUFF//////////////////////////////////////////////////////////////////////
+		// ////////////////////////MORE GRAPHICS STUFF//////////////////////////////////////////////////////////////////////
 		// /////////////////////////////////////////////////////////////////////////////////////////////////////////
 		float ratio;
 		int width, height;

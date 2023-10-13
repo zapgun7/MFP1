@@ -54,9 +54,9 @@ private:
 
 	float currentPan;
 
-	FMOD::System* m_System = nullptr;
-	FMOD::Sound* m_Sound = nullptr;
-	FMOD::Channel* m_Channel = nullptr;
+	FMOD::System* m_System = nullptr; // One and only system we use
+	FMOD::Sound* m_Sound = nullptr;  // Just used as placeholder to load into map
+	FMOD::Channel* m_Channel = nullptr; // One and only channel we use
 	FMOD_RESULT m_Result;
 	std::vector<std::string> friendlyNames;
 	std::vector<std::string> credits;
