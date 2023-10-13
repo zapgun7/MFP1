@@ -667,18 +667,20 @@ void cMediaPlayer::updateScene(bool isPlaying, bool isPaused)
 	int rotateSpeed = 2; // Hard set value to control speed of lights
 	int amplitude = 8; // Distance of lights away from poly roughly
 
+	double currTime = glfwGetTime();
+
 	// Nested sin/cos/tan creates distinct paths for the lights to travel on
-	::g_pTheLights->theLights[0].position.x = amplitude * sin(sin(3 * sin(glfwGetTime() / rotateSpeed)));
-	::g_pTheLights->theLights[0].position.z = amplitude * sin(sin(3 * sin(glfwGetTime() / rotateSpeed + 1.57f)));
-	::g_pTheLights->theLights[0].position.y = amplitude * sin(2 * cos(4 * sin(glfwGetTime() / (rotateSpeed * 5))));
+	::g_pTheLights->theLights[0].position.x = amplitude * sin(sin(3 * sin(currTime / rotateSpeed)));
+	::g_pTheLights->theLights[0].position.z = amplitude * sin(sin(3 * sin(currTime / rotateSpeed + 1.57f)));
+	::g_pTheLights->theLights[0].position.y = amplitude * sin(2 * cos(4 * sin(currTime / (rotateSpeed * 5))));
 
-	::g_pTheLights->theLights[1].position.x = -amplitude * cos(3 * cos(2 * cos(glfwGetTime() / rotateSpeed + 1.57f)));
-	::g_pTheLights->theLights[1].position.z = -amplitude * cos(3 * cos(2 * cos(glfwGetTime() / rotateSpeed)));
-	::g_pTheLights->theLights[1].position.y = -amplitude * sin(2 * cos(4 * sin(glfwGetTime() / (rotateSpeed * 5) + 1.57f)));
+	::g_pTheLights->theLights[1].position.x = -amplitude * cos(3 * cos(2 * cos(currTime / rotateSpeed + 1.57f)));
+	::g_pTheLights->theLights[1].position.z = -amplitude * cos(3 * cos(2 * cos(currTime / rotateSpeed)));
+	::g_pTheLights->theLights[1].position.y = -amplitude * sin(2 * cos(4 * sin(currTime / (rotateSpeed * 5) + 1.57f)));
 
-	::g_pTheLights->theLights[2].position.x = -amplitude * cos(3 * sin(cos(glfwGetTime() / (rotateSpeed * 3) + 1.57f)));
-	::g_pTheLights->theLights[2].position.z = amplitude * cos(3 * sin(cos(glfwGetTime() / (rotateSpeed * 3))));
-	::g_pTheLights->theLights[2].position.y = -amplitude * tan(0.7 * tan(cos(glfwGetTime() / (rotateSpeed * 5))));
+	::g_pTheLights->theLights[2].position.x = -amplitude * cos(3 * sin(cos(currTime / (rotateSpeed * 3) + 1.57f)));
+	::g_pTheLights->theLights[2].position.z = amplitude * cos(3 * sin(cos(currTime / (rotateSpeed * 3))));
+	::g_pTheLights->theLights[2].position.y = -amplitude * tan(0.7 * tan(cos(currTime / (rotateSpeed * 5))));
 
 
 
