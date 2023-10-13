@@ -4,7 +4,7 @@ Watch the demo here (sans stop button): https://www.youtube.com/watch?v=81r0ClfW
 
 ## How to Build
 - Should just have to open it in VS2022 and build it in either Debug or Release in x64
-- Or run the Project1.exe in the root folder
+- Or run the Project1.exe in the ClassExamples folder
 
 
 ## Design Choices:
