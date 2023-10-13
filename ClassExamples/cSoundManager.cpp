@@ -66,9 +66,15 @@ void cSoundManager::Destroy()
 	std::map<std::string, FMOD::Sound*>::iterator it = m_map_friendlyName_to_sound.begin();
 	while(it != m_map_friendlyName_to_sound.end()) // Iterates through the map to release all the sounds
 	{
-		it->second->release(); // Release sound
+		result = it->second->release(); // Release sound
 		//delete(it->second); // Delete pointer         // Causing an ungraceful program termination (when closing window)
 		it++;
+		if (result != FMOD_OK)
+		{
+			std::cout << "Failed to release sound" << std::endl;
+			FMODCheckError(result);
+			//Destroy();
+		}
 	}
 
 	result = m_System->close();
@@ -90,6 +96,7 @@ FMOD::Channel* cSoundManager::PlaySound(FMOD::Sound* sound) // For calling from 
 	result = m_System->playSound(sound, 0, false, &m_Channel);
 	if (result != FMOD_OK)
 	{
+		std::cout << "Failed to play a sound" << std::endl;
 		Destroy();
 		return NULL;
 	}
@@ -114,10 +121,11 @@ void cSoundManager::Update(float vol, float pit, float pan, bool isLooping)
 	setVolume(vol);
 	setPitch(pit);
 	setPan(pan);
- 	if (isLooping)
- 		setLoop(-1);
- 	else
- 		setLoop(0);
+	if (isLooping)
+		setLoop(-1);
+	else
+		setLoop(0);
+
 
 
 	FMOD_RESULT result;
@@ -134,72 +142,106 @@ void cSoundManager::Update(float vol, float pit, float pan, bool isLooping)
 
 void cSoundManager::setPitch(float newPitch)
 {
-	// Do we want to let it go below 0? probably not. maybe clamp it at .05f or something, since 0 would probably stop the audio
-// 	if (newPitch < 0.01f)
-// 	{
-// 		m_Channel->setPitch(0.01f);
-// 		return;
-// 	}
-	m_Channel->setPitch(newPitch);
+	FMOD_RESULT result;
+	result = m_Channel->setPitch(newPitch);
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
 }
 
 
 void cSoundManager::setVolume(float newVolume)
 {
+	FMOD_RESULT result;
 	if (newVolume < -2.0f) // Make sure volume doesn't go below -2
 	{
-		m_Channel->setVolume(-2.0f);
+		result = m_Channel->setVolume(-2.0f);
 		return;
 	}
 	else if (newVolume > 2.0f) // Make sure volume doesn't go above 2, I don't want to accidentally blow out my ears/headphones :)
 	{
-		m_Channel->setVolume(2.0f);
+		result = m_Channel->setVolume(2.0f);
 		return;
 	}
-	m_Channel->setVolume(newVolume);
+	result = m_Channel->setVolume(newVolume);
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
 }
 
 
 void cSoundManager::setPan(float newPan)
 {
+	FMOD_RESULT result;
 	if (abs(newPan) > 1.0f) // Clamp the newPan between(including) -1 and 1
 		newPan = abs(newPan) / newPan;
-	m_Channel->setPan(newPan); // Update channel
+	result = m_Channel->setPan(newPan); // Update channel
+
 	currentPan = newPan; // Update private variable
+
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
 }
 
 
 void cSoundManager::setLoop(int loopState) // -1 = loop forever; 0 = oneshot (don't loop); anything over 0 is the number of times to loop
 {
+	FMOD_RESULT result;
 	if (loopState < 0)
 	{
-		m_Channel->setMode(FMOD_LOOP_NORMAL); // Set channel mode to looping
-		m_Channel->setLoopCount(-1);
+		result = m_Channel->setMode(FMOD_LOOP_NORMAL); // Set channel mode to looping
+		if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+			FMODCheckError(result);
+		result = m_Channel->setLoopCount(-1);
+		if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+			FMODCheckError(result);
 		return;
 	}
-	m_Channel->setLoopCount(loopState);
+	result = m_Channel->setLoopCount(loopState);
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
 	return;
 }
 
 
 void cSoundManager::setPausePlay(bool isPaused)
 {
-	m_Channel->setPaused(isPaused);
+	FMOD_RESULT result;
+
+
+	result = m_Channel->setPaused(isPaused);
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
+
 	return;
 }
 
+// Returns pitch of the channel, returns 0.0f if channel is not in use
 float cSoundManager::getPitch()
 {
-	float temp;
-	m_Channel->getPitch(&temp);
+	FMOD_RESULT result;
+	float temp = 0.0f;
+
+
+	result = m_Channel->getPitch(&temp);
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
+
+
 	return temp;
 }
 
 
+// Returns the volume of the channel, returns 0 if channel is not in use
 float cSoundManager::getVolume()
 {
-	float temp;
-	m_Channel->getVolume(&temp);
+	FMOD_RESULT result;
+	float temp = 0.0f;
+
+
+	result = m_Channel->getVolume(&temp);
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
+
+
 	return temp;
 }
 
@@ -209,19 +251,30 @@ float cSoundManager::getPan()
 	return currentPan;
 }
 
-
+// Returns the loop count of the channel, 0 if channel is not in use
 int cSoundManager::getLoop()
 {
-	int temp;
-	m_Channel->getLoopCount(&temp);
+	FMOD_RESULT result;
+	int temp = 0;
+
+	result = m_Channel->getLoopCount(&temp);
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
+
+
 	return temp;
 }
 
 
 bool cSoundManager::getIsPlaying()
 {
-	bool temp;
-	m_Channel->isPlaying(&temp);
+	FMOD_RESULT result;
+	bool temp = false;
+
+	result = m_Channel->isPlaying(&temp);
+	if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+		FMODCheckError(result);
+
 	return temp;
 }
 
@@ -233,9 +286,19 @@ std::vector<int> cSoundManager::getAudioProgress()//      vector[1] = current po
 	unsigned int audPos;
 	unsigned int audLen;
 	FMOD::Sound *temp;
-	m_Channel->getPosition(&audPos, FMOD_TIMEUNIT_MS); // get position in ms
-	m_Channel->getCurrentSound(&temp);
-	temp->getLength(&audLen, FMOD_TIMEUNIT_MS);
+	FMOD_RESULT result;
+
+
+		result = m_Channel->getPosition(&audPos, FMOD_TIMEUNIT_MS); // get position in ms
+		if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+			FMODCheckError(result);
+		result = m_Channel->getCurrentSound(&temp);
+		if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+			FMODCheckError(result);
+		result = temp->getLength(&audLen, FMOD_TIMEUNIT_MS);
+		if (result != FMOD_ERR_INVALID_HANDLE) // Invalid handle is not bad
+			FMODCheckError(result);
+
 	if (audPos == NULL)
 	{
 		retVec.push_back(0.0f);

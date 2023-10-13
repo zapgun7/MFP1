@@ -331,7 +331,7 @@ bool cMediaPlayer::startProgram()
 			ImGui::Text("\n\n");
 			ImGui::SliderFloat("Volume", &volume, -2.0f, 2.0f);
 
-			ImGui::SliderFloat("Pitch", &pitch, -10.0f, 10.0f);
+			ImGui::SliderFloat("Pitch", &pitch, 0.0f, 10.0f);
 
 			ImGui::SliderFloat("Pan", &pan, -1.0f, 1.0f);
 
